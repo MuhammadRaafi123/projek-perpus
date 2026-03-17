@@ -1,0 +1,392 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  User, Mail, Calendar, Award, Heart, Home, Book,
+  History, Clock, Loader2, LogOut, Edit2, Save, X,
+  BookOpen, CheckCircle, AlertCircle,
+} from "lucide-react";
+
+export default function ProfilePage() {
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [profileData, setProfileData] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [borrowHistory, setBorrowHistory] = useState([]);
+
+  // Statistik dari localStorage
+  const [stats, setStats] = useState({ wishlist: 0, aktif: 0, selesai: 0 });
+
+  // ── LOAD PROFIL ──
+  useEffect(() => {
+    loadProfile();
+    loadLocalStats();
+  }, []);
+
+  const loadLocalStats = () => {
+    try {
+      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+      const peminjaman = JSON.parse(localStorage.getItem("peminjaman") || "[]");
+      const aktif = peminjaman.filter((i) => ["pending", "disetujui", "dipinjam"].includes(i.status)).length;
+      const selesai = peminjaman.filter((i) => i.status === "dikembalikan").length;
+      setStats({ wishlist: wishlist.length, aktif, selesai });
+    } catch { }
+  };
+
+  const loadProfile = async () => {
+    setIsLoading(true);
+    try {
+      const userDataStr = sessionStorage.getItem("userData");
+
+      if (!userDataStr) {
+        // Tidak ada sesi → redirect ke login
+        router.push("/login-page");
+        return;
+      }
+
+      const userData = JSON.parse(userDataStr);
+
+      const res = await fetch(`/api/profile?userId=${userData.id}`);
+      const data = await res.json();
+
+      if (res.ok && data.profileData) {
+        setProfileData(data.profileData);
+        setEditData({
+          nama_lengkap: data.profileData.nama_lengkap,
+          email: data.profileData.email,
+        });
+        setBorrowHistory(data.borrowHistory || []);
+      } else {
+        // Fallback: pakai data dari sessionStorage
+        setProfileData({
+          id: userData.id,
+          nama_lengkap: userData.nama_lengkap || userData.username || "Pengguna",
+          username: userData.username || "-",
+          email: userData.email || "-",
+          foto_profil: "",
+          status_akun: userData.role || "user",
+          role: userData.role || "user",
+          created_at: "-",
+        });
+        setEditData({
+          nama_lengkap: userData.nama_lengkap || userData.username || "Pengguna",
+          email: userData.email || "-",
+        });
+      }
+    } catch (err) {
+      console.error("Gagal load profil:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ── SIMPAN PROFIL ──
+  const handleSave = async () => {
+    if (!editData.nama_lengkap.trim()) {
+      setSaveError("Nama lengkap tidak boleh kosong.");
+      return;
+    }
+    if (!editData.email.trim() || !editData.email.includes("@")) {
+      setSaveError("Email tidak valid.");
+      return;
+    }
+
+    setSaveError("");
+    setIsSaving(true);
+    try {
+      const userDataStr = sessionStorage.getItem("userData");
+      const userData = userDataStr ? JSON.parse(userDataStr) : {};
+
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: profileData.id || userData.id,
+          nama_lengkap: editData.nama_lengkap,
+          email: editData.email,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSaveError(data.error || "Gagal menyimpan profil.");
+        return;
+      }
+
+      // Update sessionStorage
+      sessionStorage.setItem("userData", JSON.stringify({
+        ...userData,
+        nama_lengkap: editData.nama_lengkap,
+        email: editData.email,
+      }));
+
+      // Update state
+      setProfileData((prev) => ({
+        ...prev,
+        nama_lengkap: editData.nama_lengkap,
+        email: editData.email,
+      }));
+
+      setIsEditing(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+
+    } catch (err) {
+      setSaveError("Terjadi kesalahan: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ── LOGOUT ──
+  const handleLogout = () => {
+    if (!confirm("Yakin ingin logout?")) return;
+    sessionStorage.removeItem("userData");
+    router.push("/login-page");
+  };
+
+  // ── AVATAR ──
+  const getAvatar = (nama) =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(nama || "U")}&size=200&background=d97706&color=fff&bold=true`;
+
+  const avatarUrl =
+    profileData?.foto_profil && !profileData.foto_profil.includes("default-avatar")
+      ? profileData.foto_profil
+      : getAvatar(profileData?.nama_lengkap || "U");
+
+  // ── STATUS BADGE ──
+  const getStatusBadge = (status) => {
+    const map = {
+      menunggu:     { bg: "bg-yellow-100", text: "text-yellow-800", label: "Menunggu" },
+      disetujui:    { bg: "bg-green-100",  text: "text-green-800",  label: "Disetujui" },
+      dipinjam:     { bg: "bg-blue-100",   text: "text-blue-800",   label: "Dipinjam" },
+      dikembalikan: { bg: "bg-gray-100",   text: "text-gray-700",   label: "Dikembalikan" },
+      terlambat:    { bg: "bg-orange-100", text: "text-orange-700", label: "Terlambat" },
+      ditolak:      { bg: "bg-red-100",    text: "text-red-700",    label: "Ditolak" },
+    };
+    const s = map[status] || { bg: "bg-gray-100", text: "text-gray-600", label: status };
+    return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>{s.label}</span>;
+  };
+
+  // ── LOADING ──
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-yellow-500 mx-auto mb-3" />
+          <p className="text-gray-500">Memuat profil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) return null;
+
+  return (
+    <div className="flex min-h-screen bg-gray-100">
+
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-gradient-to-b from-gray-700 to-gray-800 text-white fixed h-full shadow-2xl flex flex-col">
+        <div className="p-6 border-b border-gray-600">
+          <h1 className="text-3xl font-bold text-yellow-400">STARBOOK</h1>
+        </div>
+        <nav className="flex-1 py-6 space-y-2">
+          <Link href="/Homepage" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Home size={22} /> Beranda</Link>
+          <Link href="/koleksi-buku" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Book size={22} /> Koleksi Buku</Link>
+          <Link href="/peminjaman" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><History size={22} /> Peminjaman</Link>
+          <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Heart size={22} /> Wishlist</Link>
+          <Link href="/riwayat" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Clock size={22} /> Riwayat</Link>
+          <Link href="/profile" className="flex items-center gap-4 px-6 py-4 bg-yellow-600/20 border-r-4 border-yellow-500 text-yellow-400"><User size={22} /> Profil</Link>
+        </nav>
+        <div className="p-6 border-t border-gray-600 text-sm text-gray-400">© 2025 StarBook</div>
+      </aside>
+
+      {/* MAIN */}
+      <div className="flex-1 ml-64 p-10">
+
+        {/* TOP BAR */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-700">Profil Saya</h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg shadow transition font-semibold"
+          >
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
+
+        {/* SUCCESS TOAST */}
+        {saveSuccess && (
+          <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 shadow-sm">
+            <CheckCircle size={18} /> Profil berhasil diperbarui!
+          </div>
+        )}
+
+        {/* PROFILE CARD */}
+        <div className="bg-white rounded-2xl shadow-md p-8 mb-6 border border-gray-100">
+          <div className="flex gap-8 items-start flex-wrap">
+
+            {/* AVATAR */}
+            <div className="flex flex-col items-center gap-2">
+              <img src={avatarUrl} alt="Avatar" className="w-32 h-32 rounded-full border-4 border-yellow-400 shadow-lg" />
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                profileData.role === "admin" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
+              }`}>
+                {profileData.role === "admin" ? "👑 Admin" : "👤 Anggota"}
+              </span>
+            </div>
+
+            {/* INFO / EDIT */}
+            <div className="flex-1 min-w-0">
+              {!isEditing ? (
+                <div className="space-y-3">
+                  <h2 className="text-3xl font-bold text-gray-800">{profileData.nama_lengkap}</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <User size={16} className="text-yellow-500 flex-shrink-0" />
+                      <span>@{profileData.username}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail size={16} className="text-yellow-500 flex-shrink-0" />
+                      <span className="truncate">{profileData.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className="text-yellow-500 flex-shrink-0" />
+                      <span>Bergabung: {profileData.created_at}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Award size={16} className="text-yellow-500 flex-shrink-0" />
+                      <span className="capitalize">Status: {profileData.status_akun}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 max-w-md">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 mb-1 block">Nama Lengkap</label>
+                    <input
+                      className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      value={editData.nama_lengkap}
+                      onChange={(e) => setEditData({ ...editData, nama_lengkap: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 mb-1 block">Email</label>
+                    <input
+                      type="email"
+                      className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      value={editData.email}
+                      onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                    />
+                  </div>
+                  {saveError && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
+                      <AlertCircle size={15} /> {saveError}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* ACTION BUTTONS */}
+            <div className="flex flex-col gap-2">
+              {!isEditing ? (
+                <button
+                  onClick={() => { setIsEditing(true); setSaveError(""); }}
+                  className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-lg font-semibold transition shadow"
+                >
+                  <Edit2 size={16} /> Edit Profil
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-semibold transition disabled:opacity-60"
+                  >
+                    {isSaving
+                      ? <><Loader2 size={16} className="animate-spin" /> Menyimpan...</>
+                      : <><Save size={16} /> Simpan</>
+                    }
+                  </button>
+                  <button
+                    onClick={() => { setIsEditing(false); setSaveError(""); setEditData({ nama_lengkap: profileData.nama_lengkap, email: profileData.email }); }}
+                    className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-semibold transition"
+                  >
+                    <X size={16} /> Batal
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-white rounded-xl shadow p-5 text-center border border-gray-100">
+            <p className="text-3xl font-bold text-red-500">{stats.wishlist}</p>
+            <p className="text-sm text-gray-500 mt-1">Wishlist</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-5 text-center border border-gray-100">
+            <p className="text-3xl font-bold text-blue-500">{stats.aktif}</p>
+            <p className="text-sm text-gray-500 mt-1">Sedang Dipinjam</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-5 text-center border border-gray-100">
+            <p className="text-3xl font-bold text-green-500">{stats.selesai}</p>
+            <p className="text-sm text-gray-500 mt-1">Selesai Dikembalikan</p>
+          </div>
+        </div>
+
+        {/* RIWAYAT PEMINJAMAN */}
+        <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 border-l-4 border-yellow-500 pl-3">
+            Riwayat Peminjaman
+          </h2>
+
+          {borrowHistory.length === 0 ? (
+            <div className="text-center py-12">
+              <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">Belum ada riwayat peminjaman.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-gray-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="py-3 px-4 font-semibold text-gray-600">Kode</th>
+                    <th className="py-3 px-4 font-semibold text-gray-600">Judul Buku</th>
+                    <th className="py-3 px-4 font-semibold text-gray-600">Tgl Pinjam</th>
+                    <th className="py-3 px-4 font-semibold text-gray-600">Jatuh Tempo</th>
+                    <th className="py-3 px-4 font-semibold text-gray-600">Tgl Kembali</th>
+                    <th className="py-3 px-4 font-semibold text-gray-600">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {borrowHistory.map((item, i) => (
+                    <tr key={i} className={`border-t border-gray-100 hover:bg-gray-50 transition ${i % 2 === 0 ? "" : "bg-gray-50/50"}`}>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-500">{item.kode_peminjaman}</td>
+                      <td className="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{item.judul_buku}</td>
+                      <td className="px-4 py-3 text-gray-600">{item.tanggal_pinjam || "-"}</td>
+                      <td className="px-4 py-3 text-gray-600">{item.tanggal_jatuh_tempo || "-"}</td>
+                      <td className="px-4 py-3 text-gray-600">{item.tanggal_kembali || "-"}</td>
+                      <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
