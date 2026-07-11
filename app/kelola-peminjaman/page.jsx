@@ -104,6 +104,10 @@ export default function KelolaPeminjaman() {
           <button onClick={() => router.push("/pengembalian")} className="flex items-center gap-3 px-5 py-3 rounded-xl hover:bg-[#A26012] transition font-medium">
             <Undo2 size={20} /> Pengembalian
           </button>
+
+          <button onClick={() => router.push("/profile-admin")} className="flex items-center gap-3 px-5 py-3 rounded-xl hover:bg-[#A26012] transition font-medium">
+            <UserSquare2 size={20} /> Profile
+          </button>
         </nav>
       </aside>
 

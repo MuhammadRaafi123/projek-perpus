@@ -195,9 +195,6 @@ export default function HomePage() {
           <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition">
             <Heart size={22} /> Wishlist
           </Link>
-          <Link href="/riwayat" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition">
-            <Clock size={22} /> Riwayat
-          </Link>
           <Link href="/profile" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition">
             <User size={22} /> Profil
           </Link>

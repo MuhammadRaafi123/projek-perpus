@@ -1,11 +1,6 @@
-import mysql from "mysql2/promise";
-
-export const db = await mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Raafi_123",
-  database: "db_perpustakaan",
-});
-
-
-export default db;
+const dbConfig = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+};

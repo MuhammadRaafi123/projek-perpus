@@ -144,9 +144,12 @@ export default function KoleksiBukuPage() {
           <Link href="/Homepage" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Home size={22} /> Beranda</Link>
           <Link href="/koleksi-buku" className="flex items-center gap-4 px-6 py-4 bg-yellow-600/20 border-r-4 border-yellow-500 text-yellow-400"><Book size={22} /> Koleksi Buku</Link>
           <Link href="/peminjaman" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><History size={22} /> Peminjaman</Link>
-          <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Heart size={22} /> Wishlist</Link>
-          <Link href="/riwayat" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Clock size={22} /> Riwayat</Link>
-          <Link href="/profile" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><User size={22} /> Profil</Link>
+          <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition">
+            <Heart size={22} /> Wishlist
+          </Link>
+          <Link href="/profile" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition">
+            <User size={22} /> Profil
+          </Link>
         </nav>
         <div className="p-6 border-t border-gray-600 text-sm text-gray-400">© 2025 StarBook</div>
       </aside>

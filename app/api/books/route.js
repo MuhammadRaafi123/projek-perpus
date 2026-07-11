@@ -99,13 +99,16 @@ export async function POST(req) {
     connection = await mysql.createConnection(dbConfig);
 
     const [lastBook] = await connection.execute(
-      "SELECT kode_buku FROM buku ORDER BY id DESC LIMIT 1"
+      "SELECT kode_buku FROM buku WHERE kode_buku IS NOT NULL ORDER BY id DESC LIMIT 1"
     );
 
     let newKode = "BK001";
-    if (lastBook.length > 0) {
-      const lastNumber = parseInt(lastBook[0].kode_buku.replace("BK", ""));
-      newKode = "BK" + String(lastNumber + 1).padStart(3, "0");
+    if (lastBook.length > 0 && lastBook[0].kode_buku) {
+      const match = lastBook[0].kode_buku.match(/\d+/);
+      if (match) {
+        const lastNumber = parseInt(match[0], 10);
+        newKode = "BK" + String(lastNumber + 1).padStart(3, "0");
+      }
     }
 
     const [result] = await connection.execute(

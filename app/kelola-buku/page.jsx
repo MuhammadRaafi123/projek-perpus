@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Library, LayoutDashboard, BookOpen, Notebook,
+  Library, LayoutDashboard, BookOpen, Notebook, UserSquare2,
   Undo2, Plus, Search, Edit, Trash2, X, Save, RefreshCw,
 } from "lucide-react";
 
@@ -103,11 +103,30 @@ export default function KelolaBukuPage() {
   };
 
   // ── COVER UPLOAD ──
-  const handleCover = (file) => {
+  const handleCover = async (file) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setForm((f) => ({ ...f, cover: reader.result }));
-    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload-book", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Upload foto gagal");
+      }
+
+      setForm((f) => ({ ...f, cover: result.path }));
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   // ── DELETE ──
@@ -170,6 +189,9 @@ export default function KelolaBukuPage() {
           </button>
           <button onClick={() => router.push("/pengembalian")} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition">
             <Undo2 size={20} /> Pengembalian
+          </button>
+          <button onClick={() => router.push("/profile-admin")} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition">
+            <UserSquare2 size={20} /> Profile
           </button>
         </nav>
       </aside>

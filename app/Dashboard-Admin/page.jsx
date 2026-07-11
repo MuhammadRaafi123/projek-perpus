@@ -21,6 +21,8 @@ import {
 export default function DashboardAdmin() {
   const router = useRouter();
 
+  
+
   const [requests, setRequests] = useState([]);
   const [totalBooks, setTotalBooks] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0); 
@@ -29,9 +31,6 @@ export default function DashboardAdmin() {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // =====================================================
-  // LOAD PEMINJAMAN
-  // =====================================================
   const loadPeminjaman = () => {
     try {
       const saved = localStorage.getItem("peminjaman");
@@ -51,9 +50,6 @@ export default function DashboardAdmin() {
     }
   };
 
-  // =====================================================
-  // LOAD TOTAL BUKU API
-  // =====================================================
   const loadBooks = async () => {
   try {
     const res = await fetch("/api/books");
@@ -111,9 +107,6 @@ export default function DashboardAdmin() {
     return badge[s] || "bg-gray-200 text-gray-700";
   };
 
-  // =====================================================
-  // RENDER
-  // =====================================================
   return (
     <div className="min-h-screen flex bg-gray-100 relative">
 
@@ -157,36 +150,37 @@ export default function DashboardAdmin() {
             <Undo2 size={20} />
             Pengembalian
           </button>
+
+          <button
+            onClick={() => router.push("/profile-admin")}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700"
+          >
+            <UserSquare2 size={20} />
+            Profile
+          </button>
+
         </nav>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 p-6 md:ml-0">
 
-        {/* HEADER */}
         <header className="hidden md:flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-yellow-800 capitalize">
             {activePage}
           </h1>
 
-          <button className="bg-yellow-700 text-white px-4 py-2 rounded-lg hover:bg-yellow-800">
-            Logout
-          </button>
+          
         </header>
 
-        {/* DASHBOARD */}
         {activePage === "dashboard" && (
           <>
-            {/* STATISTIK */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               
-              {/* Total Buku */}
               <div className="p-6 bg-white rounded-xl shadow border-l-4 border-yellow-500">
                 <h3 className="text-gray-600 text-sm font-semibold">Total Buku</h3>
                 <p className="text-3xl font-bold text-yellow-700 mt-2">{totalBooks}</p>
               </div>
 
-              {/* Total Siswa */}
               <div className="p-6 bg-white rounded-xl shadow border-l-4 border-blue-500">
                 <h3 className="text-gray-600 text-sm font-semibold">Total Siswa</h3>
                 <p className="text-3xl font-bold text-blue-700 mt-2">{totalUsers}</p>

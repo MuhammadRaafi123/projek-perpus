@@ -1,7 +1,3 @@
-// =====================================================
-// LOKASI FILE INI:
-// app/api/profile/route.js
-// =====================================================
 
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
@@ -13,9 +9,6 @@ const dbConfig = {
   database: "db_perpustakaan",
 };
 
-// ===============================
-// GET — Ambil data profil user + riwayat peminjaman
-// ===============================
 export async function GET(req) {
   let connection;
   try {
@@ -71,43 +64,125 @@ export async function GET(req) {
   }
 }
 
-// ===============================
-// PUT — Update profil user
-// ===============================
 export async function PUT(req) {
   let connection;
+
   try {
     const body = await req.json();
-    const { userId, nama_lengkap, email } = body;
+
+    const {
+      userId,
+      nama_lengkap,
+      username,
+      email,
+      password,
+      foto_profil,
+    } = body;
 
     if (!userId) {
-      return NextResponse.json({ error: "userId tidak ditemukan" }, { status: 400 });
+      return NextResponse.json(
+        { error: "userId tidak ditemukan" },
+        { status: 400 }
+      );
     }
 
     connection = await mysql.createConnection(dbConfig);
 
-    // Cek email sudah dipakai user lain
-    const [existing] = await connection.execute(
-      "SELECT id FROM users WHERE email = ? AND id != ? LIMIT 1",
+    // cek email
+    const [emailCheck] = await connection.execute(
+      "SELECT id FROM users WHERE email=? AND id!=?",
       [email, userId]
     );
 
-    if (existing.length > 0) {
+    if (emailCheck.length > 0) {
       await connection.end();
-      return NextResponse.json({ error: "Email sudah digunakan akun lain." }, { status: 409 });
+
+      return NextResponse.json(
+        { error: "Email sudah digunakan." },
+        { status: 409 }
+      );
     }
 
-    await connection.execute(
-      "UPDATE users SET nama_lengkap = ?, email = ? WHERE id = ?",
-      [nama_lengkap, email, userId]
+    // cek username
+    const [usernameCheck] = await connection.execute(
+      "SELECT id FROM users WHERE username=? AND id!=?",
+      [username, userId]
     );
 
+    if (usernameCheck.length > 0) {
+      await connection.end();
+
+      return NextResponse.json(
+        { error: "Username sudah digunakan." },
+        { status: 409 }
+      );
+    }
+
+    // update tanpa password
+    if (!password || password.trim() === "") {
+
+      await connection.execute(
+        `UPDATE users
+        SET
+          nama_lengkap=?,
+          username=?,
+          email=?,
+          foto_profil=?
+        WHERE id=?`,
+        [
+          nama_lengkap,
+          username,
+          email,
+          foto_profil,
+          userId,
+        ]
+      );
+
+    } else {
+
+await connection.execute(
+  `UPDATE users
+   SET
+     nama_lengkap=?,
+     username=?,
+     email=?,
+     password=SHA2(?,256),
+     foto_profil=?
+   WHERE id=?`,
+  [
+    nama_lengkap,
+    username,
+    email,
+    password,
+    foto_profil,
+    userId,
+  ]
+);
+
+    }
+
     await connection.end();
-    return NextResponse.json({ message: "Profil berhasil diupdate" }, { status: 200 });
+
+    return NextResponse.json({
+      message: "Profil berhasil diperbarui",
+    });
 
   } catch (error) {
-    console.error("Error PUT /api/profile:", error);
-    if (connection) await connection.end();
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    console.error(error);
+
+    if (connection) {
+      await connection.end();
+    }
+
+    return NextResponse.json(
+      {
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
+
   }
 }

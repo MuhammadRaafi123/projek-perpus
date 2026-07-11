@@ -8,9 +8,6 @@ export const db = await mysql.createConnection({
   database: "db_perpustakaan",
 });
 
-// ================================
-//  GET SEMUA SISWA
-// ================================
 export async function GET() {
   try {
     const [rows] = await db.execute("SELECT * FROM siswa ORDER BY id DESC");

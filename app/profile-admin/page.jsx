@@ -1,15 +1,28 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  User, Mail, Calendar, Award, Heart, Home, Book,
-  History, Clock, Loader2, LogOut, Edit2, Save, X,
-  BookOpen, CheckCircle, AlertCircle,
+  Library,
+  LayoutDashboard,
+  BookOpen,
+  Notebook,
+  Undo2,
+  UserSquare2,
+  User,
+  Mail,
+  Calendar,
+  Award,
+  Loader2,
+  LogOut,
+  Edit2,
+  Save,
+  X,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 
-export default function ProfilePage() {
+export default function ProfileAdminPage() {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -21,32 +34,11 @@ export default function ProfilePage() {
 
   const [profileData, setProfileData] = useState(null);
   const [editData, setEditData] = useState({});
-  const [borrowHistory, setBorrowHistory] = useState([]);
   const [previewImage, setPreviewImage] = useState("");
-
-  // Statistik dari localStorage
-  const [stats, setStats] = useState({ wishlist: 0, aktif: 0, selesai: 0 });
-
-  // ── LOAD STATS ──
-  const loadLocalStats = useCallback(() => {
-    try {
-      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-      const peminjaman = JSON.parse(localStorage.getItem("peminjaman") || "[]");
-      const aktif = peminjaman.filter((i) =>
-        ["pending", "disetujui", "dipinjam"].includes(i.status)
-      ).length;
-      const selesai = peminjaman.filter(
-        (i) => i.status === "dikembalikan"
-      ).length;
-      setStats({ wishlist: wishlist.length, aktif, selesai });
-    } catch {
-      // localStorage not available or corrupt — keep defaults
-    }
-  }, []);
+  const [borrowHistory, setBorrowHistory] = useState([]);
 
   // ── Resolve userId: sessionStorage → cookie-based API fallback ──
   const resolveUserId = useCallback(async () => {
-    // 1) Try sessionStorage first
     try {
       const userDataStr = sessionStorage.getItem("userData");
       if (userDataStr) {
@@ -56,26 +48,24 @@ export default function ProfilePage() {
         }
       }
     } catch {
-      // sessionStorage unavailable or corrupt — continue to fallback
+      // ignore
     }
 
-    // 2) Fallback: fetch from cookie-based API
     try {
       const res = await fetch("/api/profile/me");
       if (res.ok) {
         const data = await res.json();
         if (data.user && data.user.id) {
-          // Re-populate sessionStorage so subsequent loads are fast
           try {
             sessionStorage.setItem("userData", JSON.stringify(data.user));
           } catch {
-            // sessionStorage write failed — that's okay
+            // ignore
           }
           return data.user.id;
         }
       }
     } catch {
-      // API call failed — will be handled by caller
+      // ignore
     }
 
     return null;
@@ -90,12 +80,11 @@ export default function ProfilePage() {
       const userId = await resolveUserId();
 
       if (!userId) {
-        // No session at all — redirect to login
         router.push("/login-page");
         return;
       }
 
-      const res = await fetch(`/api/profile?userId=${userId}`);
+      const res = await fetch(`/api/profile-admin?userId=${userId}`);
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
@@ -173,7 +162,6 @@ export default function ProfilePage() {
           });
         }
 
-        // Convert back to array
         dbHistory = Array.from(historyMap.values());
       } catch (err) {
         console.error("Gagal parse localStorage:", err);
@@ -183,7 +171,6 @@ export default function ProfilePage() {
     } catch (err) {
       console.error("loadProfile error:", err);
 
-      // Try to build a minimal profile from sessionStorage as last resort
       let fallbackProfile = null;
       try {
         const userDataStr = sessionStorage.getItem("userData");
@@ -192,18 +179,18 @@ export default function ProfilePage() {
           if (userData && userData.id) {
             fallbackProfile = {
               id: userData.id,
-              nama_lengkap: userData.nama_lengkap || userData.username || "User",
+              nama_lengkap: userData.nama_lengkap || userData.username || "Admin",
               username: userData.username || "",
               email: userData.email || "",
-              role: userData.role || "anggota",
-              status_akun: userData.status_akun || userData.role || "aktif",
+              role: userData.role || "admin",
+              status_akun: userData.status_akun || "aktif",
               created_at: "-",
               foto_profil: "",
             };
           }
         }
       } catch {
-        // sessionStorage not available
+        // ignore
       }
 
       if (fallbackProfile) {
@@ -214,13 +201,14 @@ export default function ProfilePage() {
           username: fallbackProfile.username || "",
           email: fallbackProfile.email || "",
           password: "",
-          foto_profil: data.profileData.foto_profil || "",
+          foto_profil: "",
         });
 
         setLoadError("Gagal memuat data lengkap. Menampilkan data tersimpan.");
       } else {
         setLoadError(err.message || "Gagal memuat profil.");
       }
+      setBorrowHistory([]);
     } finally {
       setIsLoading(false);
     }
@@ -228,11 +216,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile();
-    loadLocalStats();
-  }, [loadProfile, loadLocalStats]);
+  }, [loadProfile]);
 
   const handleSave = async () => {
-    
     const namaLengkap = (editData.nama_lengkap || "").trim();
     const email = (editData.email || "").trim();
 
@@ -250,7 +236,7 @@ export default function ProfilePage() {
     setSaveError("");
 
     try {
-      const res = await fetch("/api/profile", {
+      const res = await fetch("/api/profile-admin", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -263,7 +249,6 @@ export default function ProfilePage() {
           password: editData.password,
           foto_profil: editData.foto_profil,
         }),
-
       });
 
       const result = await res.json().catch(() => ({}));
@@ -272,12 +257,10 @@ export default function ProfilePage() {
         throw new Error(result.error || `Gagal menyimpan (${res.status})`);
       }
 
-      // Update sessionStorage
       try {
         const currentStr = sessionStorage.getItem("userData");
         if (currentStr) {
           const current = JSON.parse(currentStr);
-
           sessionStorage.setItem(
             "userData",
             JSON.stringify({
@@ -289,8 +272,9 @@ export default function ProfilePage() {
           );
         }
       } catch {
-
+        // ignore
       }
+
       setProfileData((prev) => ({
         ...prev,
         nama_lengkap: namaLengkap,
@@ -313,40 +297,35 @@ export default function ProfilePage() {
   };
 
   const handleImageChange = async (e) => {
-  const file = e.target.files[0];
+    const file = e.target.files[0];
+    if (!file) return;
 
-  if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
 
-  const formData = new FormData();
-  formData.append("file", file);
+    try {
+      const res = await fetch("/api/upload-profile", {
+        method: "POST",
+        body: formData,
+      });
 
-  try {
-    const res = await fetch("/api/upload-profile", {
-      method: "POST",
-      body: formData,
-    });
+      const result = await res.json();
 
-    const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Upload foto gagal");
+      }
 
-    if (!res.ok) {
-      throw new Error(result.error || "Upload foto gagal");
+      setPreviewImage(result.path);
+      setEditData((prev) => ({
+        ...prev,
+        foto_profil: result.path,
+      }));
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
-
-    // Preview foto yang baru diupload
-    setPreviewImage(result.path);
-
-    // Simpan path ke state agar nanti ikut disimpan ke database
-    setEditData((prev) => ({
-      ...prev,
-      foto_profil: result.path,
-    }));
-
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-};
-
+  };
 
   const handleLogout = async () => {
     if (!confirm("Yakin ingin logout?")) return;
@@ -354,12 +333,13 @@ export default function ProfilePage() {
     try {
       sessionStorage.removeItem("userData");
     } catch {
+      // ignore
     }
 
     try {
       await fetch("/api/logout", { method: "POST" });
     } catch {
-      
+      // ignore
     }
 
     window.location.href = "/login-page";
@@ -387,7 +367,6 @@ export default function ProfilePage() {
     return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>{s.label}</span>;
   };
 
-  // ── LOADING ──
   if (isLoading) {
     return (
       <div className="flex w-full h-screen items-center justify-center bg-gray-100">
@@ -426,35 +405,70 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-gradient-to-b from-gray-700 to-gray-800 text-white fixed h-full shadow-2xl flex flex-col">
-        <div className="p-6 border-b border-gray-600">
-          <h1 className="text-3xl font-bold text-yellow-400">STARBOOK</h1>
+    <div className="min-h-screen flex bg-gray-100 relative">
+      {/* SIDEBAR DESKTOP */}
+      <aside className="w-64 bg-yellow-800 text-white flex flex-col p-6 shadow-xl hidden md:flex">
+        <div className="flex items-center gap-3 mb-10">
+          <Library className="w-8 h-8 text-yellow-300" />
+          <h2 className="text-2xl font-bold">Admin Panel</h2>
         </div>
-        <nav className="flex-1 py-6 space-y-2">
-          <Link href="/Homepage" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Home size={22} /> Beranda</Link>
-          <Link href="/koleksi-buku" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Book size={22} /> Koleksi Buku</Link>
-          <Link href="/peminjaman" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><History size={22} /> Peminjaman</Link>
-          <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition"><Heart size={22} /> Wishlist</Link>
-          <Link href="/profile" className="flex items-center gap-4 px-6 py-4 bg-yellow-600/20 border-r-4 border-yellow-500 text-yellow-400"><User size={22} /> Profil</Link>
+
+        <nav className="flex flex-col space-y-4">
+          <button
+            onClick={() => router.push("/Dashboard-Admin")}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+          >
+            <LayoutDashboard size={20} />
+            Dashboard
+          </button>
+
+          <button
+            onClick={() => router.push("/kelola-buku")}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+          >
+            <BookOpen size={20} />
+            Kelola Buku
+          </button>
+
+          <button
+            onClick={() => router.push("/kelola-peminjaman")}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+          >
+            <Notebook size={20} />
+            Peminjaman
+          </button>
+
+          <button
+            onClick={() => router.push("/pengembalian")}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+          >
+            <Undo2 size={20} />
+            Pengembalian
+          </button>
+
+          <button
+            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-yellow-700 transition scale-[1.02]"
+          >
+            <UserSquare2 size={20} />
+            Profile
+          </button>
         </nav>
-        <div className="p-6 border-t border-gray-600 text-sm text-gray-400">© 2025 StarBook</div>
       </aside>
 
-      {/* MAIN */}
-      <div className="flex-1 ml-64 p-10">
-
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-700">Profil Saya</h1>
+      {/* MAIN CONTENT */}
+      <main className="flex-1 p-6 md:p-10 md:ml-0 overflow-y-auto">
+        {/* HEADER */}
+        <header className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-yellow-800 capitalize">
+            Profile Admin
+          </h1>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg shadow transition font-semibold"
           >
             <LogOut size={18} /> Logout
           </button>
-        </div>
+        </header>
 
         {loadError && (
           <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6 shadow-sm">
@@ -469,58 +483,41 @@ export default function ProfilePage() {
         )}
 
         {/* PROFILE CARD */}
-        <div className="bg-white rounded-2xl shadow-md p-8 mb-6 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-md p-8 mb-6 border border-gray-100 max-w-4xl">
           <div className="flex gap-8 items-start flex-wrap">
-
             {/* AVATAR */}
             <div className="flex flex-col items-center gap-3">
+              <img
+                src={
+                  previewImage
+                    ? previewImage
+                    : profileData.foto_profil
+                    ? profileData.foto_profil
+                    : avatarUrl
+                }
+                alt="Avatar"
+                className="w-32 h-32 rounded-full border-4 border-yellow-400 shadow-lg object-cover"
+              />
 
-  <img
-    src={
-      previewImage
-        ? previewImage
-        : profileData.foto_profil
-        ? profileData.foto_profil
-        : avatarUrl
-    }
-    alt="Avatar"
-    className="w-32 h-32 rounded-full border-4 border-yellow-400 shadow-lg object-cover"
-  />
+              {isEditing && (
+                <>
+                  <label className="cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    Upload Foto
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                  <p className="text-xs text-gray-500">JPG, PNG, JPEG</p>
+                </>
+              )}
 
-  {isEditing && (
-    <>
-      <label className="cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-
-        Upload Foto
-
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageChange}
-        />
-
-      </label>
-
-      <p className="text-xs text-gray-500">
-        JPG, PNG, JPEG
-      </p>
-    </>
-  )}
-
-  <span
-    className={`text-xs font-semibold px-3 py-1 rounded-full ${
-      profileData.role === "admin"
-        ? "bg-red-100 text-red-700"
-        : "bg-yellow-100 text-yellow-700"
-    }`}
-  >
-    {profileData.role === "admin"
-      ? "👑 Admin"
-      : "👤 Anggota"}
-  </span>
-
-</div>
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                👑 Admin
+              </span>
+            </div>
 
             {/* INFO / EDIT */}
             <div className="flex-1 min-w-0">
@@ -530,129 +527,108 @@ export default function ProfilePage() {
                     {profileData.nama_lengkap || "User"}
                   </h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
-
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600 mt-4">
                     <div className="flex items-center gap-2">
-                      <User size={16} className="text-yellow-500 flex-shrink-0" />
+                      <User size={16} className="text-yellow-600 flex-shrink-0" />
                       <span>@{profileData.username || "-"}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Mail size={16} className="text-yellow-500 flex-shrink-0" />
+                      <Mail size={16} className="text-yellow-600 flex-shrink-0" />
                       <span className="truncate">{profileData.email || "-"}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Calendar size={16} className="text-yellow-500 flex-shrink-0" />
+                      <Calendar size={16} className="text-yellow-600 flex-shrink-0" />
                       <span>Bergabung: {profileData.created_at || "-"}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Award size={16} className="text-yellow-500 flex-shrink-0" />
+                      <Award size={16} className="text-yellow-600 flex-shrink-0" />
                       <span className="capitalize">
                         Status: {profileData.status_akun || "-"}
                       </span>
                     </div>
-
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4 max-w-md">
-
-                  {/* Nama Lengkap */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Nama Lengkap
                     </label>
-
                     <input
                       type="text"
                       className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                       value={editData.nama_lengkap || ""}
                       onChange={(e) =>
-                        setEditData({
-                          ...editData,
-                          nama_lengkap: e.target.value,
-                        })
+                        setEditData({ ...editData, nama_lengkap: e.target.value })
                       }
                     />
                   </div>
 
-                  {/* Username */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Username
                     </label>
-
                     <input
                       type="text"
                       className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                       value={editData.username || ""}
                       onChange={(e) =>
-                        setEditData({
-                          ...editData,
-                          username: e.target.value,
-                        })
+                        setEditData({ ...editData, username: e.target.value })
                       }
                     />
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Email
                     </label>
-
                     <input
                       type="email"
                       className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                       value={editData.email || ""}
                       onChange={(e) =>
-                        setEditData({
-                          ...editData,
-                          email: e.target.value,
-                        })
+                        setEditData({ ...editData, email: e.target.value })
                       }
                     />
                   </div>
 
-                  {/* Password */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Password Baru
                     </label>
-
                     <input
                       type="password"
                       placeholder="Kosongkan jika tidak ingin mengganti password"
                       className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                       value={editData.password || ""}
                       onChange={(e) =>
-                        setEditData({
-                          ...editData,
-                          password: e.target.value,
-                        })
+                        setEditData({ ...editData, password: e.target.value })
                       }
                     />
                   </div>
 
                   {saveError && (
-                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
+                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-lg mt-2">
                       <AlertCircle size={15} />
                       {saveError}
                     </div>
                   )}
-
                 </div>
               )}
             </div>
 
             {/* ACTION BUTTONS */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 mt-4 md:mt-0">
               {!isEditing ? (
                 <button
-                  onClick={() => { setIsEditing(true); setSaveError(""); }}
-                  className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-lg font-semibold transition shadow"
+                  onClick={() => {
+                    setIsEditing(true);
+                    setSaveError("");
+                  }}
+                  className="flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow w-full md:w-auto"
                 >
                   <Edit2 size={16} /> Edit Profil
                 </button>
@@ -661,29 +637,32 @@ export default function ProfilePage() {
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-semibold transition disabled:opacity-60"
+                    className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow w-full md:w-auto disabled:opacity-60"
                   >
-                    {isSaving
-                      ? <><Loader2 size={16} className="animate-spin" /> Menyimpan...</>
-                      : <><Save size={16} /> Simpan</>
-                    }
+                    {isSaving ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" /> Menyimpan...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={16} /> Simpan
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => {
-                    setIsEditing(false);
-                    setSaveError("");
-
-                    setEditData({
-                      nama_lengkap: profileData.nama_lengkap || "",
-                      username: profileData.username || "",
-                      email: profileData.email || "",
-                      password: "",
-                      foto_profil: profileData.foto_profil || "",
-                    });
-
-                    setPreviewImage("");
-                  }}
-                    className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-semibold transition"
+                      setIsEditing(false);
+                      setSaveError("");
+                      setEditData({
+                        nama_lengkap: profileData.nama_lengkap || "",
+                        username: profileData.username || "",
+                        email: profileData.email || "",
+                        password: "",
+                        foto_profil: profileData.foto_profil || "",
+                      });
+                      setPreviewImage("");
+                    }}
+                    className="flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2.5 rounded-lg font-semibold transition w-full md:w-auto"
                   >
                     <X size={16} /> Batal
                   </button>
@@ -693,24 +672,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* STATS */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-xl shadow p-5 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-red-500">{stats.wishlist}</p>
-            <p className="text-sm text-gray-500 mt-1">Wishlist</p>
-          </div>
-          <div className="bg-white rounded-xl shadow p-5 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-blue-500">{stats.aktif}</p>
-            <p className="text-sm text-gray-500 mt-1">Sedang Dipinjam</p>
-          </div>
-          <div className="bg-white rounded-xl shadow p-5 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-green-500">{stats.selesai}</p>
-            <p className="text-sm text-gray-500 mt-1">Selesai Dikembalikan</p>
-          </div>
-        </div>
-
         {/* RIWAYAT PEMINJAMAN */}
-        <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100 max-w-4xl">
           <h2 className="text-2xl font-bold mb-6 text-gray-800 border-l-4 border-yellow-500 pl-3">
             Riwayat Peminjaman
           </h2>
@@ -749,7 +712,7 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

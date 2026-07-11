@@ -127,15 +127,10 @@ export default function WishlistPage() {
             <History size={22} /> Peminjaman
           </Link>
 
-          <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700">
+          <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 bg-yellow-600/20 border-r-4 border-yellow-500 text-yellow-400">
             <Heart size={22} /> Wishlist
           </Link>
-
-          <Link href="/riwayat" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700">
-            <Clock size={22} /> Riwayat
-          </Link>
-
-          <Link href="/profile" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700">
+          <Link href="/profile" className="flex items-center gap-4 px-6 py-4 hover:bg-gray-700 transition">
             <User size={22} /> Profil
           </Link>
         </nav>

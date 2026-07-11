@@ -1,80 +1,105 @@
-// app/api/login/route.js
-
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "Raafi_123",
+  database: "db_perpustakaan",
+  waitForConnections: true,
+  connectionLimit: 10,
+});
+
 export async function POST(req) {
+  let conn;
+
   try {
-    const body = await req.json();
-    const { email, password } = body;
+    const { email, password } = await req.json();
 
-    const db = await mysql.createConnection({
-      host: "localhost",
-      user: "root",
-      password: "Raafi_123",
-      database: "db_perpustakaan",
-    });
+    if (!email || !password) {
+      return NextResponse.json(
+        { message: "Email dan Password wajib diisi." },
+        { status: 400 }
+      );
+    }
 
-    const [rows] = await db.execute(
-      `SELECT id, nama_lengkap, username, email, role 
-       FROM users 
-       WHERE (email = ? OR username = ?) AND password = SHA2(?, 256)`,
+    conn = await pool.getConnection();
+
+    const [rows] = await conn.execute(
+      `SELECT
+          id,
+          nama_lengkap,
+          username,
+          email,
+          role,
+          foto_profil,
+          status_akun
+      FROM users
+      WHERE (email=? OR username=?)
+      AND password=SHA2(?,256)
+      LIMIT 1`,
       [email, email, password]
     );
 
-    await db.end();
-
     if (rows.length === 0) {
       return NextResponse.json(
-        { message: "Email/Username atau Password salah!" },
-        { status: 401 }
+        {
+          message: "Email atau Password salah.",
+        },
+        {
+          status: 401,
+        }
       );
     }
 
     const user = rows[0];
 
-    // Buat response
     const response = NextResponse.json(
       {
+        success: true,
         message: "Login berhasil",
         role: user.role,
-        user: {
-          id:           user.id,
-          nama_lengkap: user.nama_lengkap,
-          username:     user.username,
-          email:        user.email,
-          role:         user.role,
-        },
+        user,
       },
-      { status: 200 }
+      {
+        status: 200,
+      }
     );
 
-    // ── Set cookie role ──
-    // HttpOnly: false agar bisa dibaca JS di client (untuk sessionStorage sync)
-    // Untuk keamanan lebih, bisa set httpOnly: true tapi middleware saja yang baca
-    response.cookies.set("user_role", user.role, {
-      httpOnly: false,      // middleware baca dari cookie
-      secure: false,        // ganti true kalau sudah pakai HTTPS
+    response.cookies.set("user_id", String(user.id), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 8,  // 8 jam
       path: "/",
+      maxAge: 60 * 60 * 8,
     });
 
-    // Set cookie user_id untuk keperluan lain (opsional)
-    response.cookies.set("user_id", String(user.id), {
-      httpOnly: false,
-      secure: false,
+    response.cookies.set("user_role", user.role, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 8,
       path: "/",
+      maxAge: 60 * 60 * 8,
     });
 
     return response;
 
-  } catch (e) {
+  } catch (err) {
+
+    console.log(err);
+
     return NextResponse.json(
-      { message: "Server error", error: e.message },
-      { status: 500 }
+      {
+        message: "Server Error",
+      },
+      {
+        status: 500,
+      }
     );
+
+  } finally {
+
+    if (conn) conn.release();
+
   }
 }

@@ -8,7 +8,7 @@ export default function AksesDitolakPage() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("userData");
-    // Hapus cookie dengan cara set expired
+    
     document.cookie = "user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.push("/login-page");

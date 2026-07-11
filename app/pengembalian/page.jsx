@@ -82,6 +82,14 @@ export default function KelolaPengembalian() {
             <Undo2 size={20} />
             Pengembalian
           </button>
+
+          <button
+            onClick={() => router.push("/profile-admin")}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700"
+          >
+            <UserSquare2 size={20} />
+            Profile
+          </button>
         </nav>
       </aside>
 

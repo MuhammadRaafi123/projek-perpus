@@ -154,7 +154,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── ABOUT ── */}
       <section id="about" className="relative z-10 bg-gray-100 py-16 px-6 md:px-20 text-center">
         <h2 className="text-3xl font-bold text-gray-700 mb-4 border-l-4 border-yellow-500 pl-3 inline-block text-left">
           Tentang Perpustakaan Kami
@@ -164,10 +163,8 @@ export default function LandingPage() {
         </p>
       </section>
 
-      {/* ── KOLEKSI ── */}
       <section id="koleksi" className="relative z-10 bg-white py-16 px-6 md:px-20">
 
-        {/* Header + counter */}
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h2 className="text-3xl font-bold text-gray-700 border-l-4 border-yellow-500 pl-3">
             {isFiltering
@@ -181,11 +178,9 @@ export default function LandingPage() {
           )}
         </div>
 
-        {/* ── FILTER BAR ── */}
         {!loading && (
           <div className="mb-8 space-y-4">
 
-            {/* Search inline (di bawah heading, untuk UX mobile) */}
             <div className="flex gap-3 flex-wrap items-center">
               <div className="flex bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-1 max-w-md">
                 <input
