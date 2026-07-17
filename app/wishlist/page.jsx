@@ -21,15 +21,11 @@ export default function WishlistPage() {
 
   const fallbackImage = "https://via.placeholder.com/300x400?text=No+Image";
 
-  // ============================
-  // LOAD WISHLIST
-  // ============================
   useEffect(() => {
     const saved = localStorage.getItem("wishlist");
     if (saved) {
       const parsed = JSON.parse(saved);
 
-      // Pastikan setiap item punya key unik
       const fixed = parsed.map((b, index) => ({
         ...b,
         kode_buku:
@@ -45,17 +41,11 @@ export default function WishlistPage() {
     }
   }, []);
 
-  // ============================
-  // SAVE WISHLIST
-  // ============================
   const saveWishlist = (newList) => {
     setWishlist(newList);
     localStorage.setItem("wishlist", JSON.stringify(newList));
   };
 
-  // ============================
-  // KEY GENERATOR
-  // ============================
   const getBookKey = (book, index) => {
     return (
       book.kode_buku ||
@@ -66,17 +56,11 @@ export default function WishlistPage() {
     );
   };
 
-  // ============================
-  // REMOVE FROM WISHLIST
-  // ============================
   const removeFromWishlist = (key) => {
     const updated = wishlist.filter((b, i) => getBookKey(b, i) !== key);
     saveWishlist(updated);
   };
 
-  // ============================
-  // SUBMIT PINJAM
-  // ============================
   const submitPinjam = async () => {
     if (!namaPeminjam.trim()) {
       alert("Nama peminjam wajib diisi!");
@@ -108,7 +92,6 @@ export default function WishlistPage() {
   return (
     <div className="flex bg-gray-100 min-h-screen">
 
-      {/* ================= SIDEBAR ================= */}
       <aside className="w-64 bg-gradient-to-b from-gray-700 to-gray-800 text-white fixed h-full shadow-2xl">
         <div className="p-6 border-b border-gray-600">
           <h1 className="text-3xl font-bold text-yellow-400">STARBOOK</h1>
@@ -140,14 +123,12 @@ export default function WishlistPage() {
         </div>
       </aside>
 
-      {/* ================= MAIN ================= */}
       <main className="ml-64 p-10 w-full">
         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-yellow-500 mb-8">
           <h1 className="text-3xl font-bold text-gray-700">Wishlist Kamu</h1>
           <p className="text-gray-600">Daftar buku yang kamu simpan.</p>
         </div>
 
-        {/* ================= EMPTY STATE ================= */}
         {wishlist.length === 0 && (
           <div className="text-center mt-20">
             <Heart className="w-20 h-20 text-gray-400 mx-auto mb-4" />
@@ -160,12 +141,10 @@ export default function WishlistPage() {
           </div>
         )}
 
-        {/* ================= LIST ================= */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {wishlist.map((book, index) => (
             <div key={getBookKey(book, index)} className="bg-white p-4 rounded-xl shadow relative border">
 
-              {/* DELETE BUTTON */}
               <button
                 onClick={() => removeFromWishlist(getBookKey(book, index))}
                 className="absolute top-3 right-3"
@@ -173,7 +152,6 @@ export default function WishlistPage() {
                 <Trash2 className="text-red-500 hover:text-red-700" size={22} />
               </button>
 
-              {/* COVER */}
               <img
                 src={book.cover || fallbackImage}
                 onError={(e) => (e.target.src = fallbackImage)}
@@ -181,7 +159,7 @@ export default function WishlistPage() {
                 alt={book.title}
               />
 
-              {/* TITLE */}
+
               <h4 className="font-semibold text-lg text-gray-700">
                 {book.title || "Judul Tidak Tersedia"}
               </h4>
@@ -194,7 +172,6 @@ export default function WishlistPage() {
                 Stok: {book.stock ?? "Tidak Ada Info"}
               </p>
 
-              {/* BUTTON PINJAM */}
               <button
                 onClick={() => {
                   setSelectedBook(book);
@@ -209,22 +186,18 @@ export default function WishlistPage() {
         </div>
       </main>
 
-      {/* ================= MODAL ================= */}
       {showModal && selectedBook && (
 <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
   <div className="bg-white p-6 w-full max-w-md rounded-xl shadow-lg">
 
-    {/* Judul Modal */}
     <h2 className="text-xl font-bold mb-3 text-gray-800">
       Form Peminjaman Buku
     </h2>
 
-    {/* Judul Buku */}
     <p className="mb-4 font-semibold text-gray-700">
       {selectedBook.title}
     </p>
 
-    {/* Input Nama Peminjam */}
     <div className="mb-4">
       <label className="font-semibold text-gray-700">
         Nama Peminjam
@@ -239,7 +212,6 @@ export default function WishlistPage() {
       />
     </div>
 
-    {/* Pilihan Durasi */}
     <div className="mb-6">
       <label className="font-semibold text-gray-700">
         Durasi Peminjaman
@@ -256,10 +228,8 @@ export default function WishlistPage() {
       </select>
     </div>
 
-    {/* Tombol Aksi */}
     <div className="flex justify-end gap-3">
 
-      {/* Tombol Batal */}
       <button
         className="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-400 transition"
         onClick={() => setShowModal(false)}
@@ -267,7 +237,6 @@ export default function WishlistPage() {
         Batal
       </button>
 
-      {/* Tombol Submit */}
       <button
         className="px-5 py-2 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 transition"
         onClick={submitPinjam}

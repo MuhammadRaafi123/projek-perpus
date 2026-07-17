@@ -18,12 +18,10 @@ export default function AksesDitolakPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
       <div className="bg-white rounded-2xl shadow-xl p-10 max-w-md w-full text-center border border-red-100">
 
-        {/* Icon */}
         <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <ShieldAlert className="w-12 h-12 text-red-500" />
         </div>
 
-        {/* Judul */}
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Akses Ditolak</h1>
         <p className="text-gray-500 mb-1">
           Halaman ini hanya bisa diakses oleh{" "}
@@ -33,7 +31,6 @@ export default function AksesDitolakPage() {
           Akun kamu tidak memiliki izin untuk masuk ke halaman admin.
         </p>
 
-        {/* Tombol */}
         <div className="flex flex-col gap-3">
           <button
             onClick={() => router.push("/Homepage")}

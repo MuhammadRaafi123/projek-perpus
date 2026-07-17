@@ -8,7 +8,6 @@ const dbConfig = {
   database: "db_perpustakaan",
 };
 
-// GET /api/profile/me — ambil data user berdasarkan cookie user_id
 export async function GET(req) {
   let connection;
   try {

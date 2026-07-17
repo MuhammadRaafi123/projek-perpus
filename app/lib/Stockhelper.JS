@@ -1,12 +1,5 @@
-// =====================================================
-// lib/stockHelper.js
-// Utility untuk menyimpan stok buku ke localStorage
-// agar stok tidak reset saat refresh
-// =====================================================
-
 const STOCK_KEY = "book_stock_local";
 
-// Ambil semua stok lokal
 export function getLocalStock() {
   try {
     const saved = localStorage.getItem(STOCK_KEY);
@@ -16,7 +9,6 @@ export function getLocalStock() {
   }
 }
 
-// Simpan stok lokal
 export function saveLocalStock(stockMap) {
   try {
     localStorage.setItem(STOCK_KEY, JSON.stringify(stockMap));
@@ -25,8 +17,6 @@ export function saveLocalStock(stockMap) {
   }
 }
 
-// Gabungkan stok dari database dengan stok lokal
-// Stok lokal selalu dipakai jika lebih kecil (sudah pernah berkurang)
 export function mergeStock(booksFromDB) {
   const localStock = getLocalStock();
   const merged = {};
@@ -36,8 +26,6 @@ export function mergeStock(booksFromDB) {
     const dbStok = b.stok_tersedia ?? b.stok_total ?? 0;
 
     if (localStock[key] !== undefined) {
-      // Pakai stok lokal jika lebih kecil dari database
-      // (artinya ada peminjaman lokal yang belum sync ke DB)
       merged[key] = Math.min(localStock[key], dbStok);
     } else {
       merged[key] = dbStok;
@@ -47,7 +35,6 @@ export function mergeStock(booksFromDB) {
   return merged;
 }
 
-// Kurangi stok 1 buku
 export function decrementStock(kode_buku, currentStockMap) {
   const current = currentStockMap[kode_buku] ?? 0;
   const newStock = Math.max(0, current - 1);

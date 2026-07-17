@@ -2,12 +2,6 @@ import db from "@/app/lib/db";
 import { authenticateToken, isUser, isAdmin } from "@/middleware/auth";
 import { NextResponse } from "next/server";
 
-// =============================
-// POST - USER MENGAJUKAN PINJAMAN
-// =============================
-// =============================
-// POST - USER MENGAJUKAN PINJAMAN
-// =============================
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -29,7 +23,6 @@ export async function POST(req) {
       );
     }
 
-    // Ambil detail buku
     const [rows] = await db.query("SELECT * FROM buku WHERE id = ?", [bookId]);
 
     if (rows.length === 0) {
@@ -41,7 +34,6 @@ export async function POST(req) {
 
     const buku = rows[0];
 
-    // 🔥 CEK STOK TERLEBIH DAHULU
     if (buku.stok <= 0) {
       return NextResponse.json(
         { success: false, message: "Stok buku habis!" },
@@ -49,23 +41,19 @@ export async function POST(req) {
       );
     }
 
-    // 🔥 KURANGI STOK DI DATABASE
     await db.query(
       "UPDATE buku SET stok = stok - 1 WHERE id = ?",
       [bookId]
     );
 
-    // Buat kode peminjaman unik
     const kodePeminjaman = `PJM${Date.now()}-${user.id}`;
 
-    // Hitung durasi
     const tanggalPinjam = new Date();
     const tanggalJatuhTempo = new Date();
     if (durasi === "2 Minggu") tanggalJatuhTempo.setDate(tanggalJatuhTempo.getDate() + 14);
     else if (durasi === "1 Bulan") tanggalJatuhTempo.setMonth(tanggalJatuhTempo.getMonth() + 1);
     else tanggalJatuhTempo.setDate(tanggalJatuhTempo.getDate() + 7);
 
-    // Insert peminjaman baru
     const [result] = await db.query(
       `INSERT INTO peminjaman 
         (kode_peminjaman, user_id, buku_id, tanggal_pinjam, tanggal_jatuh_tempo, status)
@@ -98,10 +86,6 @@ export async function POST(req) {
   }
 }
 
-
-// =============================
-// GET - ADMIN MELIHAT SEMUA PEMINJAMAN
-// =============================
 export async function GET(req) {
   try {
     const user = await authenticateToken(req);

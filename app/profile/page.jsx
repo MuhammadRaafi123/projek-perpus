@@ -24,10 +24,8 @@ export default function ProfilePage() {
   const [borrowHistory, setBorrowHistory] = useState([]);
   const [previewImage, setPreviewImage] = useState("");
 
-  // Statistik dari localStorage
   const [stats, setStats] = useState({ wishlist: 0, aktif: 0, selesai: 0 });
 
-  // ── LOAD STATS ──
   const loadLocalStats = useCallback(() => {
     try {
       const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
@@ -40,13 +38,10 @@ export default function ProfilePage() {
       ).length;
       setStats({ wishlist: wishlist.length, aktif, selesai });
     } catch {
-      // localStorage not available or corrupt — keep defaults
     }
   }, []);
 
-  // ── Resolve userId: sessionStorage → cookie-based API fallback ──
   const resolveUserId = useCallback(async () => {
-    // 1) Try sessionStorage first
     try {
       const userDataStr = sessionStorage.getItem("userData");
       if (userDataStr) {
@@ -56,32 +51,29 @@ export default function ProfilePage() {
         }
       }
     } catch {
-      // sessionStorage unavailable or corrupt — continue to fallback
+
     }
 
-    // 2) Fallback: fetch from cookie-based API
     try {
       const res = await fetch("/api/profile/me");
       if (res.ok) {
         const data = await res.json();
         if (data.user && data.user.id) {
-          // Re-populate sessionStorage so subsequent loads are fast
           try {
             sessionStorage.setItem("userData", JSON.stringify(data.user));
           } catch {
-            // sessionStorage write failed — that's okay
+
           }
           return data.user.id;
         }
       }
     } catch {
-      // API call failed — will be handled by caller
+
     }
 
     return null;
   }, []);
 
-  // ── LOAD PROFIL ──
   const loadProfile = useCallback(async () => {
     setIsLoading(true);
     setLoadError("");
@@ -90,7 +82,6 @@ export default function ProfilePage() {
       const userId = await resolveUserId();
 
       if (!userId) {
-        // No session at all — redirect to login
         router.push("/login-page");
         return;
       }
@@ -173,7 +164,6 @@ export default function ProfilePage() {
           });
         }
 
-        // Convert back to array
         dbHistory = Array.from(historyMap.values());
       } catch (err) {
         console.error("Gagal parse localStorage:", err);
@@ -183,7 +173,6 @@ export default function ProfilePage() {
     } catch (err) {
       console.error("loadProfile error:", err);
 
-      // Try to build a minimal profile from sessionStorage as last resort
       let fallbackProfile = null;
       try {
         const userDataStr = sessionStorage.getItem("userData");
@@ -203,7 +192,7 @@ export default function ProfilePage() {
           }
         }
       } catch {
-        // sessionStorage not available
+
       }
 
       if (fallbackProfile) {
@@ -272,7 +261,6 @@ export default function ProfilePage() {
         throw new Error(result.error || `Gagal menyimpan (${res.status})`);
       }
 
-      // Update sessionStorage
       try {
         const currentStr = sessionStorage.getItem("userData");
         if (currentStr) {
@@ -332,10 +320,8 @@ export default function ProfilePage() {
       throw new Error(result.error || "Upload foto gagal");
     }
 
-    // Preview foto yang baru diupload
     setPreviewImage(result.path);
 
-    // Simpan path ke state agar nanti ikut disimpan ke database
     setEditData((prev) => ({
       ...prev,
       foto_profil: result.path,
@@ -373,7 +359,6 @@ export default function ProfilePage() {
       ? profileData.foto_profil
       : getAvatar(profileData?.nama_lengkap || "U");
 
-  // ── STATUS BADGE ──
   const getStatusBadge = (status) => {
     const map = {
       menunggu: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Menunggu" },
@@ -387,7 +372,6 @@ export default function ProfilePage() {
     return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>{s.label}</span>;
   };
 
-  // ── LOADING ──
   if (isLoading) {
     return (
       <div className="flex w-full h-screen items-center justify-center bg-gray-100">
@@ -428,7 +412,6 @@ export default function ProfilePage() {
   return (
     <div className="flex min-h-screen bg-gray-100">
 
-      {/* SIDEBAR */}
       <aside className="w-64 bg-gradient-to-b from-gray-700 to-gray-800 text-white fixed h-full shadow-2xl flex flex-col">
         <div className="p-6 border-b border-gray-600">
           <h1 className="text-3xl font-bold text-yellow-400">STARBOOK</h1>
@@ -443,7 +426,6 @@ export default function ProfilePage() {
         <div className="p-6 border-t border-gray-600 text-sm text-gray-400">© 2025 StarBook</div>
       </aside>
 
-      {/* MAIN */}
       <div className="flex-1 ml-64 p-10">
 
         <div className="flex justify-between items-center mb-8">
@@ -468,11 +450,9 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* PROFILE CARD */}
         <div className="bg-white rounded-2xl shadow-md p-8 mb-6 border border-gray-100">
           <div className="flex gap-8 items-start flex-wrap">
 
-            {/* AVATAR */}
             <div className="flex flex-col items-center gap-3">
 
   <img
@@ -522,7 +502,6 @@ export default function ProfilePage() {
 
 </div>
 
-            {/* INFO / EDIT */}
             <div className="flex-1 min-w-0">
               {!isEditing ? (
                 <div className="space-y-3">
@@ -559,7 +538,6 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4 max-w-md">
 
-                  {/* Nama Lengkap */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Nama Lengkap
@@ -578,7 +556,6 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  {/* Username */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Username
@@ -597,7 +574,6 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Email
@@ -616,7 +592,6 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  {/* Password */}
                   <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1 block">
                       Password Baru
@@ -647,7 +622,6 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* ACTION BUTTONS */}
             <div className="flex flex-col gap-2">
               {!isEditing ? (
                 <button
@@ -693,7 +667,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* STATS */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow p-5 text-center border border-gray-100">
             <p className="text-3xl font-bold text-red-500">{stats.wishlist}</p>
@@ -709,7 +682,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* RIWAYAT PEMINJAMAN */}
         <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
           <h2 className="text-2xl font-bold mb-6 text-gray-800 border-l-4 border-yellow-500 pl-3">
             Riwayat Peminjaman

@@ -37,7 +37,6 @@ export default function ProfileAdminPage() {
   const [previewImage, setPreviewImage] = useState("");
   const [borrowHistory, setBorrowHistory] = useState([]);
 
-  // ── Resolve userId: sessionStorage → cookie-based API fallback ──
   const resolveUserId = useCallback(async () => {
     try {
       const userDataStr = sessionStorage.getItem("userData");
@@ -48,7 +47,7 @@ export default function ProfileAdminPage() {
         }
       }
     } catch {
-      // ignore
+
     }
 
     try {
@@ -59,19 +58,18 @@ export default function ProfileAdminPage() {
           try {
             sessionStorage.setItem("userData", JSON.stringify(data.user));
           } catch {
-            // ignore
+
           }
           return data.user.id;
         }
       }
     } catch {
-      // ignore
+
     }
 
     return null;
   }, []);
 
-  // ── LOAD PROFIL ──
   const loadProfile = useCallback(async () => {
     setIsLoading(true);
     setLoadError("");
@@ -190,7 +188,7 @@ export default function ProfileAdminPage() {
           }
         }
       } catch {
-        // ignore
+
       }
 
       if (fallbackProfile) {
@@ -272,7 +270,7 @@ export default function ProfileAdminPage() {
           );
         }
       } catch {
-        // ignore
+      
       }
 
       setProfileData((prev) => ({
@@ -333,13 +331,13 @@ export default function ProfileAdminPage() {
     try {
       sessionStorage.removeItem("userData");
     } catch {
-      // ignore
+    
     }
 
     try {
       await fetch("/api/logout", { method: "POST" });
     } catch {
-      // ignore
+    
     }
 
     window.location.href = "/login-page";
@@ -353,7 +351,7 @@ export default function ProfileAdminPage() {
       ? profileData.foto_profil
       : getAvatar(profileData?.nama_lengkap || "U");
 
-  // ── STATUS BADGE ──
+  
   const getStatusBadge = (status) => {
     const map = {
       menunggu: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Menunggu" },
@@ -406,7 +404,7 @@ export default function ProfileAdminPage() {
 
   return (
     <div className="min-h-screen flex bg-gray-100 relative">
-      {/* SIDEBAR DESKTOP */}
+
       <aside className="w-64 bg-yellow-800 text-white flex flex-col p-6 shadow-xl hidden md:flex">
         <div className="flex items-center gap-3 mb-10">
           <Library className="w-8 h-8 text-yellow-300" />
@@ -455,9 +453,8 @@ export default function ProfileAdminPage() {
         </nav>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 p-6 md:p-10 md:ml-0 overflow-y-auto">
-        {/* HEADER */}
+
         <header className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-yellow-800 capitalize">
             Profile Admin
@@ -482,10 +479,9 @@ export default function ProfileAdminPage() {
           </div>
         )}
 
-        {/* PROFILE CARD */}
         <div className="bg-white rounded-2xl shadow-md p-8 mb-6 border border-gray-100 max-w-4xl">
           <div className="flex gap-8 items-start flex-wrap">
-            {/* AVATAR */}
+
             <div className="flex flex-col items-center gap-3">
               <img
                 src={
@@ -519,7 +515,6 @@ export default function ProfileAdminPage() {
               </span>
             </div>
 
-            {/* INFO / EDIT */}
             <div className="flex-1 min-w-0">
               {!isEditing ? (
                 <div className="space-y-3">
@@ -620,7 +615,6 @@ export default function ProfileAdminPage() {
               )}
             </div>
 
-            {/* ACTION BUTTONS */}
             <div className="flex flex-col gap-2 mt-4 md:mt-0">
               {!isEditing ? (
                 <button
@@ -672,7 +666,6 @@ export default function ProfileAdminPage() {
           </div>
         </div>
 
-        {/* RIWAYAT PEMINJAMAN */}
         <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100 max-w-4xl">
           <h2 className="text-2xl font-bold mb-6 text-gray-800 border-l-4 border-yellow-500 pl-3">
             Riwayat Peminjaman

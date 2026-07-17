@@ -32,12 +32,8 @@ export default function Login() {
         return;
       }
 
-      // ── Simpan data user ke sessionStorage ──
-      // Ini dipakai oleh halaman profil, guard hook, dll
       sessionStorage.setItem("userData", JSON.stringify(data.user));
 
-      // Cookie sudah di-set otomatis oleh API route
-      // Redirect berdasarkan role
       if (data.role === "admin") {
         router.push("/Dashboard-Admin");
       } else {
@@ -70,7 +66,6 @@ export default function Login() {
 
         <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
 
-          {/* Error message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
               ⚠️ {error}

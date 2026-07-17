@@ -8,7 +8,6 @@ import {
   ChevronDown, ChevronUp, RefreshCw, AlertTriangle,
 } from "lucide-react";
 
-// ── STOCK HELPER ──
 const STOCK_KEY = "book_stock_local";
 function incrementStock(kode_buku) {
   try {
@@ -27,7 +26,6 @@ export default function PeminjamanPage() {
   const [filterStatus, setFilterStatus] = useState("semua");
   const [sortOrder, setSortOrder] = useState("terbaru");
 
-  // Reset modal
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
@@ -47,7 +45,6 @@ export default function PeminjamanPage() {
     loadPeminjaman();
   };
 
-  // ── PARSE TANGGAL ──
   const parseDate = (tanggal) => {
     if (!tanggal) return new Date(0);
     if (tanggal.includes("/")) {
@@ -57,7 +54,6 @@ export default function PeminjamanPage() {
     return new Date(tanggal);
   };
 
-  // ── FILTER + SORT ──
   const filtered = peminjaman
     .filter((item) => filterStatus === "semua" || item.status === filterStatus)
     .sort((a, b) => {
@@ -68,7 +64,6 @@ export default function PeminjamanPage() {
 
   const countByStatus = (status) => peminjaman.filter((i) => i.status === status).length;
 
-  // ── KEMBALIKAN ──
   const confirmKembalikan = () => {
     const saved = localStorage.getItem("peminjaman");
     if (saved) {
@@ -109,7 +104,6 @@ export default function PeminjamanPage() {
     setSelectedItem(null);
   };
 
-  // ── HAPUS ──
   const confirmHapus = () => {
     const saved = localStorage.getItem("peminjaman");
     if (saved) {
@@ -120,11 +114,9 @@ export default function PeminjamanPage() {
     setSelectedItem(null);
   };
 
-  // ── RESET SEMUA DATA PEMINJAMAN ──
   const handleReset = () => {
     setResetLoading(true);
     setTimeout(() => {
-      // Kembalikan semua stok buku yang masih pending/dipinjam
       const allData = JSON.parse(localStorage.getItem("peminjaman") || "[]");
       allData.forEach((loan) => {
         if (["pending", "disetujui", "dipinjam"].includes(loan.status) && loan.bookId) {
@@ -132,9 +124,7 @@ export default function PeminjamanPage() {
         }
       });
 
-      // Hapus semua data peminjaman
       localStorage.removeItem("peminjaman");
-      // Reset juga pengembalian & riwayat yang terkait
       localStorage.removeItem("pengembalian");
       localStorage.removeItem("riwayat");
 
@@ -146,7 +136,6 @@ export default function PeminjamanPage() {
     }, 800);
   };
 
-  // ── STATUS BADGE ──
   const getStatusBadge = (status) => {
     const badges = {
       pending:      { bg: "bg-yellow-100", text: "text-yellow-800", label: "⏳ Menunggu" },
@@ -177,7 +166,6 @@ export default function PeminjamanPage() {
   return (
     <div className="flex bg-gray-100 min-h-screen">
 
-      {/* SIDEBAR */}
       <aside className="w-64 bg-gradient-to-b from-gray-700 to-gray-800 text-white fixed h-full shadow-2xl flex flex-col">
         <div className="p-6 border-b border-gray-600">
           <h1 className="text-3xl font-bold text-yellow-400">STARBOOK</h1>
@@ -192,17 +180,14 @@ export default function PeminjamanPage() {
         <div className="p-6 border-t border-gray-600 text-sm text-gray-400">© 2025 StarBook</div>
       </aside>
 
-      {/* MAIN */}
       <main className="ml-64 p-10 w-full">
 
-        {/* HEADER */}
         <div className="bg-white p-6 rounded-xl shadow mb-6 border-l-4 border-yellow-500 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-700">Peminjaman Buku</h1>
             <p className="text-gray-500 mt-1">Kelola semua permintaan dan status peminjaman bukumu.</p>
           </div>
 
-          {/* TOMBOL RESET */}
           {peminjaman.length > 0 && (
             <button
               onClick={() => setShowResetModal(true)}
@@ -213,7 +198,6 @@ export default function PeminjamanPage() {
           )}
         </div>
 
-        {/* STATS STRIP */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           {[
             { label: "Semua", value: peminjaman.length, status: "semua" },
@@ -235,7 +219,6 @@ export default function PeminjamanPage() {
           ))}
         </div>
 
-        {/* SORT BAR */}
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <p className="text-sm text-gray-500">
             Menampilkan <span className="font-semibold text-gray-700">{filtered.length}</span> peminjaman
@@ -250,7 +233,6 @@ export default function PeminjamanPage() {
           </button>
         </div>
 
-        {/* EMPTY STATE */}
         {filtered.length === 0 && (
           <div className="text-center py-20 bg-white rounded-xl shadow">
             <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -264,7 +246,6 @@ export default function PeminjamanPage() {
           </div>
         )}
 
-        {/* LIST */}
         <div className="space-y-4">
           {filtered.map((item, idx) => {
             const prevItem = filtered[idx - 1];
@@ -349,7 +330,6 @@ export default function PeminjamanPage() {
         </div>
       </main>
 
-      {/* ── MODAL KONFIRMASI HAPUS / KEMBALIKAN ── */}
       {showConfirmModal && selectedItem && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl w-full max-w-md shadow-lg overflow-hidden">
@@ -375,12 +355,10 @@ export default function PeminjamanPage() {
         </div>
       )}
 
-      {/* ── MODAL RESET ── */}
       {showResetModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl w-full max-w-md shadow-lg overflow-hidden">
 
-            {/* Header */}
             <div className="bg-red-50 border-b border-red-200 p-6">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -393,7 +371,6 @@ export default function PeminjamanPage() {
               </p>
             </div>
 
-            {/* Info */}
             <div className="px-6 py-4 bg-yellow-50 border-b border-yellow-100">
               <p className="text-xs text-yellow-800 font-semibold mb-2">Data yang akan direset:</p>
               <ul className="text-xs text-yellow-700 space-y-1">
@@ -404,7 +381,6 @@ export default function PeminjamanPage() {
               </ul>
             </div>
 
-            {/* Actions */}
             <div className="p-5 flex gap-3">
               <button
                 onClick={() => setShowResetModal(false)}

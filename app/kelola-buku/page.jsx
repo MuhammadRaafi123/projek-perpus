@@ -15,7 +15,7 @@ export default function KelolaBukuPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, judul }
+  const [deleteConfirm, setDeleteConfirm] = useState(null); 
   const [deleteError, setDeleteError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -26,7 +26,6 @@ export default function KelolaBukuPage() {
     description: "", year: "", stock: 1, available: 1, cover: "",
   });
 
-  // ── LOAD BOOKS ──
   const loadBooks = async () => {
     setLoading(true);
     try {
@@ -42,20 +41,17 @@ export default function KelolaBukuPage() {
 
   useEffect(() => { loadBooks(); }, []);
 
-  // ── TOAST ──
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
   };
 
-  // ── RESET FORM ──
   const resetForm = () => {
     setForm({ title: "", author: "", publisher: "", description: "", year: "", stock: 1, available: 1, cover: "" });
     setShowForm(false);
     setEditId(null);
   };
 
-  // ── SAVE (TAMBAH / EDIT) ──
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.author.trim()) return;
@@ -74,7 +70,7 @@ export default function KelolaBukuPage() {
       };
 
       if (editId) {
-        // UPDATE — panggil /api/books/[id]
+
         const res = await fetch(`/api/books/${editId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -83,7 +79,7 @@ export default function KelolaBukuPage() {
         if (!res.ok) throw new Error((await res.json()).error || "Gagal update");
         showToast("✅ Buku berhasil diupdate");
       } else {
-        // TAMBAH — panggil /api/books (POST)
+
         const res = await fetch("/api/books", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -102,7 +98,6 @@ export default function KelolaBukuPage() {
     }
   };
 
-  // ── COVER UPLOAD ──
   const handleCover = async (file) => {
     if (!file) return;
 
@@ -129,9 +124,6 @@ export default function KelolaBukuPage() {
     }
   };
 
-  // ── DELETE ──
-  // Memanggil /api/books/[id] (DELETE) — BUKAN /api/books
-  // File /api/books/route.js yang lama TIDAK terpengaruh sama sekali
   const handleDelete = async () => {
     if (!deleteConfirm) return;
     setDeleteLoading(true);
@@ -157,7 +149,6 @@ export default function KelolaBukuPage() {
     }
   };
 
-  // ── FILTER ──
   const filtered = books.filter((b) => {
     const q = search.toLowerCase();
     return (
@@ -167,11 +158,9 @@ export default function KelolaBukuPage() {
     );
   });
 
-  // ── RENDER ──
   return (
     <div className="min-h-screen flex bg-gray-100">
 
-      {/* SIDEBAR */}
       <aside className="w-64 bg-yellow-800 text-white flex-col p-6 shadow-xl hidden md:flex">
         <div className="flex items-center gap-3 mb-10">
           <Library className="w-8 h-8 text-yellow-300" />
@@ -196,10 +185,8 @@ export default function KelolaBukuPage() {
         </nav>
       </aside>
 
-      {/* MAIN */}
       <main className="flex-1 p-6">
 
-        {/* HEADER */}
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <BookOpen className="text-amber-700 w-9 h-9" />
@@ -221,7 +208,6 @@ export default function KelolaBukuPage() {
           </div>
         </header>
 
-        {/* SEARCH + COUNTER */}
         <div className="flex items-center gap-4 mb-5">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
@@ -237,7 +223,6 @@ export default function KelolaBukuPage() {
           </span>
         </div>
 
-        {/* BOOK GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {loading ? (
             <div className="col-span-full flex justify-center items-center py-20 gap-3">
@@ -253,7 +238,6 @@ export default function KelolaBukuPage() {
             filtered.map((book) => (
               <div key={book.kode_buku || book.id} className="bg-white rounded-2xl shadow p-4 border border-amber-100 flex flex-col hover:shadow-md transition">
 
-                {/* Cover */}
                 <div className="w-full h-48 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center mb-3">
                   {book.gambar && !book.gambar.includes("default-book-cover") ? (
                     <img
@@ -285,7 +269,6 @@ export default function KelolaBukuPage() {
                   </span>
                 </div>
 
-                {/* Action buttons */}
                 <div className="flex gap-2 mt-auto">
                   <button
                     onClick={() => {
@@ -323,7 +306,6 @@ export default function KelolaBukuPage() {
         </div>
       </main>
 
-      {/* ── MODAL FORM TAMBAH / EDIT ── */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <form onSubmit={handleSave} className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-lg max-h-[90vh] overflow-y-auto">
@@ -382,7 +364,6 @@ export default function KelolaBukuPage() {
                 </div>
               </div>
 
-              {/* Cover upload */}
               <div>
                 <label className="text-xs font-semibold text-gray-600 mb-1 block">Cover Buku</label>
                 <input type="file" accept="image/*"
@@ -412,7 +393,6 @@ export default function KelolaBukuPage() {
         </div>
       )}
 
-      {/* ── MODAL KONFIRMASI HAPUS ── */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md">
@@ -454,7 +434,6 @@ export default function KelolaBukuPage() {
         </div>
       )}
 
-      {/* ── TOAST ── */}
       {toast && (
         <div className="fixed bottom-6 right-6 bg-gray-800 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium z-50">
           {toast}

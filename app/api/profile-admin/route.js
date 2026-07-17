@@ -20,7 +20,6 @@ export async function GET(req) {
 
     connection = await mysql.createConnection(dbConfig);
 
-    // Ambil data admin
     const [users] = await connection.execute(
       `SELECT id, nama_lengkap, username, email, foto_profil, status_akun, role,
               DATE_FORMAT(created_at, '%d/%m/%Y') AS created_at
@@ -33,7 +32,6 @@ export async function GET(req) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    // Ambil riwayat peminjaman user (admin mungkin juga meminjam buku)
     const [borrowHistory] = await connection.execute(
       `SELECT 
         p.kode_peminjaman,
@@ -87,7 +85,6 @@ export async function PUT(req) {
 
     connection = await mysql.createConnection(dbConfig);
 
-    // cek email
     const [emailCheck] = await connection.execute(
       "SELECT id FROM users WHERE email=? AND id!=?",
       [email, userId]
@@ -102,7 +99,6 @@ export async function PUT(req) {
       );
     }
 
-    // cek username
     const [usernameCheck] = await connection.execute(
       "SELECT id FROM users WHERE username=? AND id!=?",
       [username, userId]
@@ -117,7 +113,6 @@ export async function PUT(req) {
       );
     }
 
-    // update tanpa password
     if (!password || password.trim() === "") {
       await connection.execute(
         `UPDATE users

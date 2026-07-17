@@ -17,7 +17,6 @@ export async function PATCH(req, { params }) {
     const body = await req.json();
     const { status } = body;
 
-    // Ambil peminjaman
     const [rows] = await db.query(
       "SELECT * FROM peminjaman WHERE id = ?",
       [id]
@@ -32,7 +31,6 @@ export async function PATCH(req, { params }) {
 
     const peminjaman = rows[0];
 
-    // Jika admin TOLAK → stok +1
     if (status === "ditolak") {
       await db.query(
         "UPDATE buku SET stok = stok + 1 WHERE id = ?",
@@ -40,7 +38,6 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // Update status
     await db.query(
       "UPDATE peminjaman SET status = ? WHERE id = ?",
       [status, id]

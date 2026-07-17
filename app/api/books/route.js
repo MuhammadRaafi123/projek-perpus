@@ -1,9 +1,8 @@
 // File: app/api/books/route.js
 
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";   // ← FIX PALING PENTING
+import mysql from "mysql2/promise";  
 
-// Konfigurasi database
 const dbConfig = {
   host: "localhost",
   user: "root",
@@ -11,9 +10,6 @@ const dbConfig = {
   database: "db_perpustakaan",
 };
 
-// ===============================
-// GET — Ambil daftar buku dari DATABASE
-// ===============================
 export async function GET() {
   let connection;
 
@@ -65,9 +61,6 @@ export async function GET() {
   }
 }
 
-// ===============================
-// POST — Tambah buku ke database
-// ===============================
 export async function POST(req) {
   let connection;
 
@@ -150,9 +143,6 @@ export async function POST(req) {
   }
 }
 
-// ===============================
-// PUT — Update buku
-// ===============================
 export async function PUT(req) {
   let connection;
 
@@ -210,9 +200,6 @@ export async function PUT(req) {
   }
 }
 
-// ===============================
-// DELETE — Hapus buku
-// ===============================
 export async function DELETE(req) {
   let connection;
 

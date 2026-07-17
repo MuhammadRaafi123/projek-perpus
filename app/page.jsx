@@ -38,13 +38,11 @@ export default function LandingPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Search & filter state
-  const [searchInput, setSearchInput] = useState("");   // nilai di input (real-time)
-  const [searchQuery, setSearchQuery] = useState("");   // nilai yang dipakai filter (submit)
-  const [activeCategory, setActiveCategory] = useState("Semua"); // filter kategori aktif
+  const [searchInput, setSearchInput] = useState("");  
+  const [searchQuery, setSearchQuery] = useState("");  
+  const [activeCategory, setActiveCategory] = useState("Semua"); 
   const [visible, setVisible] = useState(STEP);
 
-  // ── FETCH API, fallback hardcode ──
   useEffect(() => {
     setLoading(true);
     fetch("/api/books")
@@ -71,10 +69,8 @@ export default function LandingPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // ── Daftar kategori unik dari data ──
   const categories = ["Semua", ...Array.from(new Set(books.map((b) => b.nama_kategori || "Lainnya"))).sort()];
 
-  // ── Eksekusi pencarian ──
   const handleSearch = () => {
     setSearchQuery(searchInput.trim());
     setVisible(STEP);
@@ -85,7 +81,6 @@ export default function LandingPage() {
     if (e.key === "Enter") handleSearch();
   };
 
-  // ── Reset semua filter ──
   const resetFilter = () => {
     setSearchInput("");
     setSearchQuery("");
@@ -93,7 +88,6 @@ export default function LandingPage() {
     setVisible(STEP);
   };
 
-  // ── Filter: nama/pengarang + kategori ──
   const filtered = books.filter((b) => {
     const key = searchQuery.toLowerCase();
     const matchText =
@@ -123,7 +117,6 @@ export default function LandingPage() {
     >
       <div className="absolute inset-0 bg-gray-800/75"></div>
 
-      {/* ── NAVBAR ── */}
       <nav className="relative z-10 flex items-center justify-between px-8 py-4 bg-gray-700/80 backdrop-blur-md text-white border-b border-gray-600">
         <h1 className="text-2xl font-bold">
           <span className="text-yellow-400">STARBOOK</span>
@@ -140,7 +133,6 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
       <section id="hero" className="relative z-10 flex flex-col justify-center items-center text-center text-white px-6 py-32 md:py-40">
         <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">
           Selamat Datang di <span className="text-yellow-400">STARBOOK</span>
@@ -201,7 +193,6 @@ export default function LandingPage() {
                 </button>
               </div>
 
-              {/* Tombol reset */}
               {isFiltering && (
                 <button
                   onClick={resetFilter}
@@ -212,7 +203,6 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* ── KATEGORI CHIPS ── */}
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <button
@@ -238,7 +228,6 @@ export default function LandingPage() {
               ))}
             </div>
 
-            {/* Active filter tags */}
             {isFiltering && (
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-xs text-gray-500">Filter aktif:</span>
@@ -263,7 +252,6 @@ export default function LandingPage() {
           </div>
         )}
 
-        {/* ── CONTENT ── */}
         {loading ? (
           <div className="flex flex-col items-center py-20 gap-4">
             <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
@@ -293,7 +281,7 @@ export default function LandingPage() {
                       className="w-full h-52 object-cover hover:scale-105 transition-transform"
                       onError={(e) => (e.currentTarget.src = fallbackImage)}
                     />
-                    {/* Badge kategori */}
+
                     {book.nama_kategori && (
                       <span className="absolute top-2 left-2 bg-gray-800/80 text-white text-xs px-2 py-0.5 rounded-full">
                         {book.nama_kategori}
@@ -325,7 +313,6 @@ export default function LandingPage() {
               ))}
             </div>
 
-            {/* Progress + tombol */}
             <div className="flex flex-col items-center mt-10 gap-3">
               <p className="text-sm text-gray-500">
                 {Math.min(visible, filtered.length)} / {filtered.length} buku ditampilkan
@@ -363,7 +350,6 @@ export default function LandingPage() {
         )}
       </section>
 
-      {/* ── FITUR ── */}
       <section className="relative z-10 bg-gray-100 py-16 px-6 md:px-20">
         <h2 className="text-3xl font-bold text-gray-700 mb-10 border-l-4 border-yellow-500 pl-3">
           Fitur yang Kami Tawarkan
@@ -393,7 +379,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
       <footer className="relative z-10 bg-gradient-to-b from-gray-700 to-gray-800 text-white py-6 text-center border-t border-gray-600">
         <p className="text-gray-400 text-sm">© 2025 StarBook. Semua hak cipta dilindungi.</p>
       </footer>

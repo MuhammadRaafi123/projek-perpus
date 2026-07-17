@@ -45,12 +45,10 @@ export default function Register() {
         return;
       }
 
-      // ⭐ SIMPAN USER KE LOCAL STORAGE
       if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      // Sukses → redirect ke login
       router.push("/login-page");
 
     } catch (err) {
@@ -83,7 +81,6 @@ export default function Register() {
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           
-          {/* Nama */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
               Nama Lengkap
@@ -98,7 +95,6 @@ export default function Register() {
             />
           </div>
 
-          {/* Username */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
               Username
@@ -113,7 +109,6 @@ export default function Register() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
               Email
@@ -128,7 +123,6 @@ export default function Register() {
             />
           </div>
 
-          {/* Password */}
           <div className="relative">
             <label className="block text-gray-700 font-semibold mb-2">
               Kata Sandi
@@ -150,7 +144,6 @@ export default function Register() {
             </button>
           </div>
 
-          {/* Konfirmasi Password */}
           <div className="relative">
             <label className="block text-gray-700 font-semibold mb-2">
               Konfirmasi Kata Sandi

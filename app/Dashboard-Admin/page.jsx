@@ -70,12 +70,9 @@ export default function DashboardAdmin() {
 };
 
 
-  // =====================================================
-  // LOAD TOTAL SISWA (USER YANG DAFTAR)
-  // =====================================================
   const loadSiswa = async () => {
     try {
-      const res = await fetch("/api/users"); // ⬅️ SESUAIKAN JIKA ENDPOINT BERBEDA
+      const res = await fetch("/api/users");
       const data = await res.json();
 
       setTotalUsers(data?.data?.length || 0);
@@ -84,18 +81,12 @@ export default function DashboardAdmin() {
     }
   };
 
-  // =====================================================
-  // EFFECT
-  // =====================================================
   useEffect(() => {
     loadPeminjaman();
     loadBooks();
-    loadSiswa();   // ⬅️ TAMBAHAN
+    loadSiswa();   
   }, []);
 
-  // =====================================================
-  // BADGE STATUS
-  // =====================================================
   const getStatusBadge = (status) => {
     const s = status?.toLowerCase();
     const badge = {
@@ -110,7 +101,6 @@ export default function DashboardAdmin() {
   return (
     <div className="min-h-screen flex bg-gray-100 relative">
 
-      {/* SIDEBAR DESKTOP */}
       <aside className="w-64 bg-yellow-800 text-white flex flex-col p-6 shadow-xl hidden md:flex">
         <div className="flex items-center gap-3 mb-10">
           <Library className="w-8 h-8 text-yellow-300" />
@@ -186,7 +176,6 @@ export default function DashboardAdmin() {
                 <p className="text-3xl font-bold text-blue-700 mt-2">{totalUsers}</p>
               </div>
 
-              {/* Sedang Dipinjam */}
               <div className="p-6 bg-white rounded-xl shadow border-l-4 border-purple-500">
                 <h3 className="text-gray-600 text-sm font-semibold">Sedang Dipinjam</h3>
                 <p className="text-3xl font-bold text-purple-700 mt-2">
@@ -194,7 +183,6 @@ export default function DashboardAdmin() {
                 </p>
               </div>
 
-              {/* Pending */}
               <div className="p-6 bg-white rounded-xl shadow border-l-4 border-red-500">
                 <h3 className="text-gray-600 text-sm font-semibold">Pending</h3>
                 <p className="text-3xl font-bold text-red-600 mt-2">
@@ -203,7 +191,6 @@ export default function DashboardAdmin() {
               </div>
             </div>
 
-            {/* STATISTIK AKTIVITAS */}
             <div className="bg-white p-6 rounded-xl shadow mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="text-yellow-700" size={24} />
@@ -235,7 +222,6 @@ export default function DashboardAdmin() {
               </div>
             </div>
 
-            {/* AKTIVITAS TERKINI */}
             <div className="bg-white p-6 rounded-xl shadow">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-yellow-800" size={24} />

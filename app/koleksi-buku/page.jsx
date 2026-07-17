@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { BookOpen, Heart, Home, Book, History, Clock, User, Search, X } from "lucide-react";
 
-// ── STOCK HELPER ──
 const STOCK_KEY = "book_stock_local";
 
 function getLocalStock() {
@@ -52,7 +51,6 @@ export default function KoleksiBukuPage() {
   const fallbackImage = "https://via.placeholder.com/400x300.png?text=No+Image";
   const STEP = 12;
 
-  // ── LOAD BUKU + MERGE STOK ──
   useEffect(() => {
     fetch("/api/books")
       .then((res) => res.json())
@@ -63,7 +61,6 @@ export default function KoleksiBukuPage() {
           gambar: b.gambar || (b.isbn ? `https://covers.openlibrary.org/b/isbn/${b.isbn}-L.jpg` : null),
         }));
         setBooks(normalised);
-        // Pakai stok lokal jika ada, fallback ke stok DB
         setBookStock(mergeStock(normalised));
         setLoading(false);
       })
@@ -100,7 +97,6 @@ export default function KoleksiBukuPage() {
     return matchText && (activeCategory === "Semua" || book.nama_kategori === activeCategory);
   });
 
-  // ── SUBMIT PINJAM ──
   const submitPinjam = () => {
     if (!namaPeminjam.trim()) return alert("Nama peminjam wajib diisi.");
     if (!selectedBook) return;
@@ -122,7 +118,6 @@ export default function KoleksiBukuPage() {
     const existing = JSON.parse(localStorage.getItem("peminjaman") || "[]");
     localStorage.setItem("peminjaman", JSON.stringify([...existing, newLoan]));
 
-    // ── Kurangi stok dan simpan ke localStorage ──
     const updatedStock = decrementStock(selectedBook.kode_buku, bookStock);
     setBookStock(updatedStock);
 
@@ -135,7 +130,6 @@ export default function KoleksiBukuPage() {
   return (
     <div className="flex min-h-screen bg-gray-100">
 
-      {/* SIDEBAR */}
       <aside className="w-64 bg-gradient-to-b from-gray-700 to-gray-800 text-white fixed h-full shadow-2xl">
         <div className="p-6 border-b border-gray-600">
           <h1 className="text-3xl font-bold text-yellow-400">STARBOOK</h1>
@@ -154,14 +148,12 @@ export default function KoleksiBukuPage() {
         <div className="p-6 border-t border-gray-600 text-sm text-gray-400">© 2025 StarBook</div>
       </aside>
 
-      {/* MAIN */}
       <main className="ml-64 w-full p-10">
         <div className="bg-white p-6 rounded-xl shadow-md mb-6 border-l-4 border-yellow-500">
           <h1 className="text-3xl font-bold text-gray-700">Koleksi Buku</h1>
           <p className="text-gray-500 mt-1">Temukan dan pinjam buku favoritmu</p>
         </div>
 
-        {/* FILTER BAR */}
         {!loading && (
           <div className="bg-white p-5 rounded-xl shadow-sm mb-6 space-y-4">
             <div className="flex gap-3 flex-wrap items-center">
@@ -214,7 +206,6 @@ export default function KoleksiBukuPage() {
           </div>
         )}
 
-        {/* GRID */}
         {loading ? (
           <div className="flex items-center gap-3 py-20 justify-center">
             <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
@@ -288,7 +279,6 @@ export default function KoleksiBukuPage() {
         )}
       </main>
 
-      {/* MODAL */}
       {showModal && selectedBook && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">

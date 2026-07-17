@@ -7,7 +7,6 @@ import {
   User, Home, Book, History, Search, X,
 } from "lucide-react";
 
-// ── STOCK HELPER (inline agar tidak perlu import terpisah) ──
 const STOCK_KEY = "book_stock_local";
 
 function getLocalStock() {
@@ -63,7 +62,6 @@ export default function HomePage() {
   const fallbackImage = "https://via.placeholder.com/400x300.png?text=No+Image";
   const STEP = 8;
 
-  // ── FETCH BOOKS + MERGE STOK LOKAL ──
   useEffect(() => {
     fetch("/api/books")
       .then((res) => res.json())
@@ -74,7 +72,6 @@ export default function HomePage() {
           gambar: b.gambar || (b.isbn ? `https://covers.openlibrary.org/b/isbn/${b.isbn}-L.jpg` : null),
         }));
         setBooks(normalised);
-        // Gabungkan stok DB dengan stok lokal
         const merged = mergeStock(normalised);
         setBookStock(merged);
       })
@@ -82,7 +79,6 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // ── LOAD LOCAL STORAGE ──
   useEffect(() => {
     try {
       const savedWishlist = localStorage.getItem("wishlist");
@@ -97,7 +93,6 @@ export default function HomePage() {
     } catch (err) { console.error(err); }
   }, []);
 
-  // ── WISHLIST ──
   const toggleWishlist = (book) => {
     const saved = JSON.parse(localStorage.getItem("wishlist") || "[]");
     const exists = saved.some((b) => b.kode_buku === book.kode_buku);
@@ -114,10 +109,8 @@ export default function HomePage() {
     setWishlist(updated);
   };
 
-  // ── KATEGORI ──
   const categories = ["Semua", ...Array.from(new Set(books.map((b) => b.nama_kategori))).sort()];
 
-  // ── SEARCH & FILTER ──
   const handleSearch = () => {
     setSearchQuery(searchInput.trim());
     setVisible(STEP);
@@ -139,7 +132,6 @@ export default function HomePage() {
     return matchText && matchCat;
   });
 
-  // ── SUBMIT PINJAM ──
   const submitPinjam = () => {
     if (!namaPeminjam.trim()) return alert("Nama peminjam wajib diisi.");
     if (!selectedBook) return;
@@ -164,7 +156,6 @@ export default function HomePage() {
     setLoans(updatedLoans);
     setActiveLoans((v) => v + 1);
 
-    // ── Kurangi stok dan simpan ke localStorage ──
     const updatedStock = decrementStock(selectedBook.kode_buku, bookStock);
     setBookStock(updatedStock);
 
@@ -177,7 +168,6 @@ export default function HomePage() {
   return (
     <div className="flex bg-gray-100 min-h-screen">
 
-      {/* SIDEBAR */}
       <aside className="w-64 bg-gradient-to-b from-gray-700 to-gray-800 text-white fixed h-full shadow-2xl flex flex-col">
         <div className="p-6 border-b border-gray-600">
           <h1 className="text-3xl font-bold text-yellow-400">STARBOOK</h1>
@@ -202,7 +192,6 @@ export default function HomePage() {
         <div className="p-6 border-t border-gray-600 text-sm text-gray-400">© 2025 StarBook</div>
       </aside>
 
-      {/* MAIN */}
       <main className="ml-64 p-10 w-full">
 
         <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-l-4 border-yellow-500">
@@ -210,7 +199,6 @@ export default function HomePage() {
           <p className="text-gray-500 mt-1">Jelajahi koleksi buku dan temukan bacaan favoritmu.</p>
         </div>
 
-        {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
           <StatCard icon={<Library size={32} />} color="yellow" value={books.length} title="Total Buku" />
           <StatCard icon={<Heart size={32} />} color="red" value={wishlist.length} title="Wishlist" />
@@ -218,7 +206,6 @@ export default function HomePage() {
           <StatCard icon={<BookOpen size={32} />} color="green" value={myLoans} title="Dipinjam" />
         </div>
 
-        {/* SEARCH + FILTER */}
         {!loading && (
           <div className="bg-white p-5 rounded-xl shadow-sm mb-6 space-y-4">
             <div className="flex gap-3 flex-wrap items-center">
@@ -280,7 +267,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* BOOK GRID */}
         <section>
           <h2 className="text-2xl font-semibold mb-4 text-gray-700 border-l-4 border-yellow-500 pl-3">
             {isFiltering ? `Hasil: ${filteredBooks.length} buku ditemukan` : "Koleksi Buku"}
@@ -364,7 +350,6 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* MODAL */}
       {showModal && selectedBook && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">

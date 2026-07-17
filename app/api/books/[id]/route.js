@@ -1,13 +1,3 @@
-// =====================================================
-// LOKASI FILE INI:
-// app/api/books/[id]/route.js
-//
-// Buat folder: app/api/books/[id]/
-// Lalu taruh file ini di dalamnya dengan nama route.js
-//
-// File app/api/books/route.js yang lama JANGAN DIHAPUS
-// =====================================================
-
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
@@ -18,17 +8,13 @@ const dbConfig = {
   database: "db_perpustakaan",
 };
 
-// ===============================
-// PUT — Update buku by ID
-// ===============================
 export async function PUT(req, context) {
   let connection;
   try {
-    // Support Next.js 13, 14, 15 — params bisa sync maupun async
     const params = await Promise.resolve(context.params);
     const id = params?.id;
 
-    console.log("PUT id:", id); // untuk debug
+    console.log("PUT id:", id); 
 
     if (!id) {
       return NextResponse.json({ error: "ID tidak ditemukan" }, { status: 400 });
@@ -77,17 +63,13 @@ export async function PUT(req, context) {
   }
 }
 
-// ===============================
-// DELETE — Hapus buku by ID
-// ===============================
 export async function DELETE(req, context) {
   let connection;
   try {
-    // Support Next.js 13, 14, 15
     const params = await Promise.resolve(context.params);
     const id = params?.id;
 
-    console.log("DELETE id:", id); // untuk debug
+    console.log("DELETE id:", id); 
 
     if (!id) {
       return NextResponse.json({ error: "ID tidak ditemukan" }, { status: 400 });
@@ -95,7 +77,6 @@ export async function DELETE(req, context) {
 
     connection = await mysql.createConnection(dbConfig);
 
-    // Cek apakah buku ada
     const [bukuCheck] = await connection.execute(
       "SELECT id FROM buku WHERE id = ? LIMIT 1",
       [id]
@@ -106,7 +87,6 @@ export async function DELETE(req, context) {
       return NextResponse.json({ error: "Buku tidak ditemukan di database" }, { status: 404 });
     }
 
-    // Cek apakah buku sedang dipinjam
     const [activeLoan] = await connection.execute(
       `SELECT id FROM peminjaman 
        WHERE buku_id = ? AND status IN ('menunggu','disetujui','dipinjam')
@@ -122,7 +102,6 @@ export async function DELETE(req, context) {
       );
     }
 
-    // Hapus buku
     await connection.execute("DELETE FROM buku WHERE id = ?", [id]);
     await connection.end();
 

@@ -26,7 +26,6 @@ export default function KelolaPengembalian() {
     if (saved) setPengembalian(JSON.parse(saved));
   };
 
-  // HAPUS DATA
   const handleHapus = (id) => {
     if (!confirm("Hapus data pengembalian ini?")) return;
 
@@ -43,7 +42,6 @@ export default function KelolaPengembalian() {
   return (
     <div className="flex min-h-screen bg-gray-100">
 
-      {/* SIDEBAR ADMIN */}
       <aside className="w-64 bg-yellow-800 text-white flex flex-col p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-10">
           <Library className="w-8 h-8 text-yellow-300" />
@@ -92,8 +90,6 @@ export default function KelolaPengembalian() {
           </button>
         </nav>
       </aside>
-
-      {/* MAIN CONTENT */}
       <main className="flex-1 p-10">
 
         <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-l-4 border-yellow-500">

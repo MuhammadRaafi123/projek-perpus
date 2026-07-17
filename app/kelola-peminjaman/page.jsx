@@ -12,7 +12,6 @@ export default function KelolaPeminjaman() {
   const [openSidebar, setOpenSidebar] = useState(false);
   const router = useRouter();
 
-  // ==== FUNCTION SORTING ====
   const updateRequests = (newList) => {
     const sorted = [...newList].sort((a, b) => {
       const order = ["pending", "disetujui", "ditolak"];
@@ -23,7 +22,6 @@ export default function KelolaPeminjaman() {
     localStorage.setItem("peminjaman", JSON.stringify(sorted));
   };
 
-  // ==== SETUJUI ====
   const handleSetuju = (id) => {
     const updated = requests.map((r) =>
       r.id === id ? { ...r, status: "disetujui" } : r
@@ -31,7 +29,6 @@ export default function KelolaPeminjaman() {
     updateRequests(updated);
   };
 
-  // ==== TOLAK ====
   const handleTolak = (id) => {
     const updated = requests.map((r) =>
       r.id === id ? { ...r, status: "ditolak" } : r
@@ -39,19 +36,17 @@ export default function KelolaPeminjaman() {
     updateRequests(updated);
   };
 
-  // ==== HAPUS SEMUA ====
   const handleRefresh = () => {
     localStorage.removeItem("peminjaman");
     setRequests([]);
   };
 
-  // ==== LOAD DATA DARI LOCALSTORAGE ====
   useEffect(() => {
     const saved = localStorage.getItem("peminjaman");
     if (saved) {
       const data = JSON.parse(saved);
       if (Array.isArray(data)) {
-        updateRequests(data); // AUTO SORTING DI AWAL
+        updateRequests(data); 
       }
     }
   }, []);
@@ -59,7 +54,6 @@ export default function KelolaPeminjaman() {
   return (
     <div className="min-h-screen flex bg-gray-100">
 
-      {/* BUTTON MENU MOBILE */}
       <button
         className="md:hidden fixed top-4 left-4 z-50 bg-yellow-800 text-white p-2 rounded-lg shadow-lg"
         onClick={() => setOpenSidebar(true)}
@@ -67,7 +61,6 @@ export default function KelolaPeminjaman() {
         <Menu size={24} />
       </button>
 
-      {/* SIDEBAR */}
       <aside
         className={`
           w-64 bg-[#8A4B08] text-white flex flex-col p-6 shadow-2xl fixed h-full z-40
@@ -87,7 +80,6 @@ export default function KelolaPeminjaman() {
           <h2 className="text-2xl font-bold">Admin Panel</h2>
         </div>
 
-        {/* MENU */}
         <nav className="flex flex-col space-y-4">
           <button onClick={() => router.push("/Dashboard-Admin")} className="flex items-center gap-3 px-5 py-3 rounded-xl hover:bg-[#A26012] transition font-medium">
             <LayoutDashboard size={20} /> Dashboard
@@ -111,14 +103,12 @@ export default function KelolaPeminjaman() {
         </nav>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="p-10 w-full md:ml-64 transition-all duration-300">
 
         <h1 className="text-3xl font-bold mb-6 text-gray-700 border-l-4 border-yellow-500 pl-3">
           Kelola Permintaan Peminjaman
         </h1>
 
-        {/* DASHBOARD MINI */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-white p-6 rounded-xl shadow border text-center">
             <Clock size={30} className="mx-auto text-yellow-600" />
@@ -145,10 +135,8 @@ export default function KelolaPeminjaman() {
           </div>
         </div>
 
-        {/* LIST DATA */}
         <div className="bg-white p-6 rounded-xl shadow border">
 
-          {/* BERSIHKAN SEMUA */}
           <div className="flex justify-end mb-5">
             <button
               onClick={handleRefresh}
