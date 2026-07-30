@@ -3,23 +3,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Library,
-  LayoutDashboard,
-  BookOpen,
-  Notebook,
-  Undo2,
-  UserSquare2,
-  User,
-  Mail,
-  Calendar,
-  Award,
-  Loader2,
-  LogOut,
-  Edit2,
-  Save,
-  X,
-  CheckCircle,
-  AlertCircle,
+  Library, LayoutDashboard, BookOpen, Notebook, Undo2, UserSquare2,
+  User, Mail, Calendar, Award, Loader2, LogOut, Edit2, Save, X,
+  CheckCircle, AlertCircle, Camera, ShieldAlert
 } from "lucide-react";
 
 export default function ProfileAdminPage() {
@@ -35,7 +21,6 @@ export default function ProfileAdminPage() {
   const [profileData, setProfileData] = useState(null);
   const [editData, setEditData] = useState({});
   const [previewImage, setPreviewImage] = useState("");
-  const [borrowHistory, setBorrowHistory] = useState([]);
 
   const resolveUserId = useCallback(async () => {
     try {
@@ -46,9 +31,7 @@ export default function ProfileAdminPage() {
           return userData.id;
         }
       }
-    } catch {
-
-    }
+    } catch {}
 
     try {
       const res = await fetch("/api/profile/me");
@@ -57,15 +40,11 @@ export default function ProfileAdminPage() {
         if (data.user && data.user.id) {
           try {
             sessionStorage.setItem("userData", JSON.stringify(data.user));
-          } catch {
-
-          }
+          } catch {}
           return data.user.id;
         }
       }
-    } catch {
-
-    }
+    } catch {}
 
     return null;
   }, []);
@@ -96,7 +75,6 @@ export default function ProfileAdminPage() {
       }
 
       setProfileData(data.profileData);
-
       setEditData({
         nama_lengkap: data.profileData.nama_lengkap || "",
         username: data.profileData.username || "",
@@ -104,68 +82,6 @@ export default function ProfileAdminPage() {
         password: "",
         foto_profil: data.profileData.foto_profil || "",
       });
-
-      let dbHistory = Array.isArray(data.borrowHistory) ? data.borrowHistory : [];
-
-      try {
-        let historyMap = new Map();
-        dbHistory.forEach(h => historyMap.set(h.kode_peminjaman, h));
-
-        const nLengkap = (data.profileData.nama_lengkap || "").toLowerCase().trim();
-        const nUsername = (data.profileData.username || "").toLowerCase().trim();
-
-        const matchUser = (l) => {
-          if (!l.user) return false;
-          const lu = l.user.toLowerCase().trim();
-          return (nLengkap && lu === nLengkap) || (nUsername && lu === nUsername);
-        };
-
-        const savedLoans = localStorage.getItem("peminjaman");
-        if (savedLoans) {
-          const localData = JSON.parse(savedLoans);
-          const userLocalLoans = localData.filter(matchUser);
-          
-          userLocalLoans.forEach(l => {
-            historyMap.set(l.id, {
-              kode_peminjaman: l.id,
-              judul_buku: l.title,
-              tanggal_pinjam: l.tanggal,
-              tanggal_jatuh_tempo: l.durasi,
-              tanggal_kembali: l.tanggalDikembalikan || "-",
-              status: l.status
-            });
-          });
-        }
-
-        const savedPengembalian = localStorage.getItem("pengembalian");
-        if (savedPengembalian) {
-          const localPengembalian = JSON.parse(savedPengembalian);
-          const userLocalPengembalian = localPengembalian.filter(matchUser);
-          
-          userLocalPengembalian.forEach(l => {
-            if (!historyMap.has(l.id)) {
-              historyMap.set(l.id, {
-                kode_peminjaman: l.id,
-                judul_buku: l.title,
-                tanggal_pinjam: l.tanggalPinjam,
-                tanggal_jatuh_tempo: "-",
-                tanggal_kembali: l.tanggalDikembalikan || "-",
-                status: "dikembalikan"
-              });
-            } else {
-              const existing = historyMap.get(l.id);
-              existing.status = "dikembalikan";
-              existing.tanggal_kembali = l.tanggalDikembalikan || existing.tanggal_kembali;
-            }
-          });
-        }
-
-        dbHistory = Array.from(historyMap.values());
-      } catch (err) {
-        console.error("Gagal parse localStorage:", err);
-      }
-
-      setBorrowHistory(dbHistory);
     } catch (err) {
       console.error("loadProfile error:", err);
 
@@ -187,13 +103,10 @@ export default function ProfileAdminPage() {
             };
           }
         }
-      } catch {
-
-      }
+      } catch {}
 
       if (fallbackProfile) {
         setProfileData(fallbackProfile);
-
         setEditData({
           nama_lengkap: fallbackProfile.nama_lengkap || "",
           username: fallbackProfile.username || "",
@@ -201,12 +114,10 @@ export default function ProfileAdminPage() {
           password: "",
           foto_profil: "",
         });
-
         setLoadError("Gagal memuat data lengkap. Menampilkan data tersimpan.");
       } else {
         setLoadError(err.message || "Gagal memuat profil.");
       }
-      setBorrowHistory([]);
     } finally {
       setIsLoading(false);
     }
@@ -224,7 +135,6 @@ export default function ProfileAdminPage() {
       setSaveError("Nama lengkap tidak boleh kosong.");
       return;
     }
-
     if (!email) {
       setSaveError("Email tidak boleh kosong.");
       return;
@@ -236,9 +146,7 @@ export default function ProfileAdminPage() {
     try {
       const res = await fetch("/api/profile-admin", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: profileData.id,
           nama_lengkap: namaLengkap,
@@ -269,9 +177,7 @@ export default function ProfileAdminPage() {
             })
           );
         }
-      } catch {
-      
-      }
+      } catch {}
 
       setProfileData((prev) => ({
         ...prev,
@@ -283,10 +189,7 @@ export default function ProfileAdminPage() {
 
       setIsEditing(false);
       setSaveSuccess(true);
-
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 3000);
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       setSaveError(err.message || "Gagal menyimpan profil.");
     } finally {
@@ -318,7 +221,6 @@ export default function ProfileAdminPage() {
         ...prev,
         foto_profil: result.path,
       }));
-
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -327,49 +229,24 @@ export default function ProfileAdminPage() {
 
   const handleLogout = async () => {
     if (!confirm("Yakin ingin logout?")) return;
-
-    try {
-      sessionStorage.removeItem("userData");
-    } catch {
-    
-    }
-
-    try {
-      await fetch("/api/logout", { method: "POST" });
-    } catch {
-    
-    }
-
+    try { sessionStorage.removeItem("userData"); } catch {}
+    try { await fetch("/api/logout", { method: "POST" }); } catch {}
     window.location.href = "/login-page";
   };
 
   const getAvatar = (nama) =>
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(nama || "U")}&size=200&background=d97706&color=fff&bold=true`;
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(nama || "A")}&size=200&background=d97706&color=fff&bold=true`;
 
   const avatarUrl =
     profileData?.foto_profil && !profileData.foto_profil.includes("default-avatar")
       ? profileData.foto_profil
-      : getAvatar(profileData?.nama_lengkap || "U");
-
-  
-  const getStatusBadge = (status) => {
-    const map = {
-      menunggu: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Menunggu" },
-      disetujui: { bg: "bg-green-100", text: "text-green-800", label: "Disetujui" },
-      dipinjam: { bg: "bg-blue-100", text: "text-blue-800", label: "Dipinjam" },
-      dikembalikan: { bg: "bg-gray-100", text: "text-gray-700", label: "Dikembalikan" },
-      terlambat: { bg: "bg-orange-100", text: "text-orange-700", label: "Terlambat" },
-      ditolak: { bg: "bg-red-100", text: "text-red-700", label: "Ditolak" },
-    };
-    const s = map[status] || { bg: "bg-gray-100", text: "text-gray-600", label: status || "-" };
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>{s.label}</span>;
-  };
+      : getAvatar(profileData?.nama_lengkap || "A");
 
   if (isLoading) {
     return (
       <div className="flex w-full h-screen items-center justify-center bg-gray-100">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-yellow-500 mx-auto mb-3" />
+          <Loader2 className="w-12 h-12 animate-spin text-yellow-600 mx-auto mb-3" />
           <p className="text-gray-500">Memuat profil...</p>
         </div>
       </div>
@@ -379,22 +256,22 @@ export default function ProfileAdminPage() {
   if (!profileData) {
     return (
       <div className="flex w-full h-screen items-center justify-center bg-gray-100">
-        <div className="text-center max-w-md mx-auto p-8">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-700 mb-2">Gagal Memuat Profil</h2>
-          <p className="text-gray-500 mb-6">{loadError || "Terjadi kesalahan saat memuat data profil."}</p>
-          <div className="flex gap-3 justify-center">
+        <div className="text-center max-w-md mx-auto p-10 bg-white border border-gray-200 rounded-3xl shadow-xl">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Gagal Memuat Profil</h2>
+          <p className="text-gray-500 mb-8">{loadError || "Terjadi kesalahan saat memuat data profil."}</p>
+          <div className="flex gap-4 justify-center">
             <button
               onClick={loadProfile}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-md"
             >
               Coba Lagi
             </button>
             <button
               onClick={() => router.push("/login-page")}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2.5 rounded-lg font-semibold transition"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-medium transition-all"
             >
-              Ke Halaman Login
+              Ke Login
             </button>
           </div>
         </div>
@@ -403,8 +280,9 @@ export default function ProfileAdminPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-100 relative">
+    <div className="min-h-screen flex bg-gray-100">
 
+      {/* Sidebar - sama persis dengan Dashboard Admin */}
       <aside className="w-64 bg-yellow-800 text-white flex flex-col p-6 shadow-xl hidden md:flex">
         <div className="flex items-center gap-3 mb-10">
           <Library className="w-8 h-8 text-yellow-300" />
@@ -414,7 +292,7 @@ export default function ProfileAdminPage() {
         <nav className="flex flex-col space-y-4">
           <button
             onClick={() => router.push("/Dashboard-Admin")}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700"
           >
             <LayoutDashboard size={20} />
             Dashboard
@@ -422,7 +300,7 @@ export default function ProfileAdminPage() {
 
           <button
             onClick={() => router.push("/kelola-buku")}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700"
           >
             <BookOpen size={20} />
             Kelola Buku
@@ -430,7 +308,7 @@ export default function ProfileAdminPage() {
 
           <button
             onClick={() => router.push("/kelola-peminjaman")}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700"
           >
             <Notebook size={20} />
             Peminjaman
@@ -438,14 +316,14 @@ export default function ProfileAdminPage() {
 
           <button
             onClick={() => router.push("/pengembalian")}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700 transition"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-yellow-700"
           >
             <Undo2 size={20} />
             Pengembalian
           </button>
 
           <button
-            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-yellow-700 transition scale-[1.02]"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-yellow-700 scale-[1.02] transition-all"
           >
             <UserSquare2 size={20} />
             Profile
@@ -453,259 +331,215 @@ export default function ProfileAdminPage() {
         </nav>
       </aside>
 
-      <main className="flex-1 p-6 md:p-10 md:ml-0 overflow-y-auto">
+      {/* Main Content */}
+      <main className="flex-1 p-6">
 
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-yellow-800 capitalize">
-            Profile Admin
-          </h1>
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-yellow-800">Profile Admin</h1>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg shadow transition font-semibold"
+            className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-700 px-5 py-2.5 rounded-lg shadow-sm transition-all font-medium"
           >
             <LogOut size={18} /> Logout
           </button>
-        </header>
+        </div>
 
+        {/* Alert Messages */}
         {loadError && (
-          <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6 shadow-sm">
-            <AlertCircle size={18} /> {loadError}
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-600 px-5 py-4 rounded-xl mb-6">
+            <AlertCircle size={20} className="shrink-0" />
+            <p className="font-medium">{loadError}</p>
           </div>
         )}
 
         {saveSuccess && (
-          <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 shadow-sm">
-            <CheckCircle size={18} /> Profil berhasil diperbarui!
+          <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 px-5 py-4 rounded-xl mb-6">
+            <CheckCircle size={20} className="shrink-0" />
+            <p className="font-medium">Profil admin berhasil diperbarui!</p>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-md p-8 mb-6 border border-gray-100 max-w-4xl">
-          <div className="flex gap-8 items-start flex-wrap">
+        {/* Profile Card */}
+        <div className="bg-white rounded-xl shadow p-8">
+          <div className="flex flex-col md:flex-row gap-8 items-start">
 
-            <div className="flex flex-col items-center gap-3">
-              <img
-                src={
-                  previewImage
-                    ? previewImage
-                    : profileData.foto_profil
-                    ? profileData.foto_profil
-                    : avatarUrl
-                }
-                alt="Avatar"
-                className="w-32 h-32 rounded-full border-4 border-yellow-400 shadow-lg object-cover"
-              />
-
-              {isEditing && (
-                <>
-                  <label className="cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                    Upload Foto
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
+            {/* Avatar Section */}
+            <div className="flex flex-col items-center gap-4 w-full md:w-auto">
+              <div className="relative group">
+                <img
+                  src={previewImage ? previewImage : (profileData.foto_profil || avatarUrl)}
+                  alt="Admin Avatar"
+                  className="w-36 h-36 rounded-full border-4 border-yellow-100 shadow-md object-cover bg-gray-100 transition-transform duration-300 group-hover:scale-105"
+                />
+                {isEditing && (
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <div className="flex flex-col items-center text-white">
+                      <Camera size={24} className="mb-1" />
+                      <span className="text-xs font-medium">Ubah Foto</span>
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   </label>
-                  <p className="text-xs text-gray-500">JPG, PNG, JPEG</p>
-                </>
-              )}
+                )}
+              </div>
 
-              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
-                👑 Admin
-              </span>
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-50 border border-yellow-200 text-sm font-bold text-yellow-800">
+                <ShieldAlert size={16} />
+                SUPER ADMIN
+              </div>
             </div>
 
-            <div className="flex-1 min-w-0">
+            {/* Details / Edit Form Section */}
+            <div className="flex-1 w-full">
               {!isEditing ? (
-                <div className="space-y-3">
-                  <h2 className="text-3xl font-bold text-gray-800">
-                    {profileData.nama_lengkap || "User"}
-                  </h2>
+                <div className="space-y-6">
+                  {/* Name & Username */}
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {profileData.nama_lengkap || "Admin Sistem"}
+                    </h2>
+                    <p className="text-gray-500 text-base mt-0.5">
+                      @{profileData.username || "admin"}
+                    </p>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600 mt-4">
-                    <div className="flex items-center gap-2">
-                      <User size={16} className="text-yellow-600 flex-shrink-0" />
-                      <span>@{profileData.username || "-"}</span>
+                  {/* Info Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center gap-4">
+                      <div className="p-2.5 bg-white rounded-lg text-yellow-600 shadow-sm">
+                        <Mail size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Email</p>
+                        <p className="text-gray-800 font-medium text-sm truncate">{profileData.email || "-"}</p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Mail size={16} className="text-yellow-600 flex-shrink-0" />
-                      <span className="truncate">{profileData.email || "-"}</span>
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center gap-4">
+                      <div className="p-2.5 bg-white rounded-lg text-orange-500 shadow-sm">
+                        <Calendar size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Tanggal Dibuat</p>
+                        <p className="text-gray-800 font-medium text-sm">{profileData.created_at || "-"}</p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Calendar size={16} className="text-yellow-600 flex-shrink-0" />
-                      <span>Bergabung: {profileData.created_at || "-"}</span>
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center gap-4 sm:col-span-2">
+                      <div className="p-2.5 bg-white rounded-lg text-green-500 shadow-sm">
+                        <Award size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Status Akses</p>
+                        <p className="text-green-600 font-medium text-sm capitalize flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          {profileData.status_akun || "Aktif - Full Access"}
+                        </p>
+                      </div>
                     </div>
+                  </div>
 
-                    <div className="flex items-center gap-2">
-                      <Award size={16} className="text-yellow-600 flex-shrink-0" />
-                      <span className="capitalize">
-                        Status: {profileData.status_akun || "-"}
-                      </span>
-                    </div>
+                  {/* Edit Button */}
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={() => { setIsEditing(true); setSaveError(""); }}
+                      className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-sm"
+                    >
+                      <Edit2 size={18} /> Edit Data Admin
+                    </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4 max-w-md">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                      Nama Lengkap
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      value={editData.nama_lengkap || ""}
-                      onChange={(e) =>
-                        setEditData({ ...editData, nama_lengkap: e.target.value })
-                      }
-                    />
-                  </div>
+                <div className="space-y-5">
+                  {/* Edit Form */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">Nama Lengkap</label>
+                      <input
+                        type="text"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all"
+                        value={editData.nama_lengkap || ""}
+                        onChange={(e) => setEditData({ ...editData, nama_lengkap: e.target.value })}
+                      />
+                    </div>
 
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      value={editData.username || ""}
-                      onChange={(e) =>
-                        setEditData({ ...editData, username: e.target.value })
-                      }
-                    />
-                  </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">Username Admin</label>
+                      <input
+                        type="text"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all"
+                        value={editData.username || ""}
+                        onChange={(e) => setEditData({ ...editData, username: e.target.value })}
+                      />
+                    </div>
 
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      value={editData.email || ""}
-                      onChange={(e) =>
-                        setEditData({ ...editData, email: e.target.value })
-                      }
-                    />
-                  </div>
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-sm font-semibold text-gray-700">Email Utama</label>
+                      <input
+                        type="email"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all"
+                        value={editData.email || ""}
+                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                      />
+                    </div>
 
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                      Password Baru
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="Kosongkan jika tidak ingin mengganti password"
-                      className="w-full p-3 border rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      value={editData.password || ""}
-                      onChange={(e) =>
-                        setEditData({ ...editData, password: e.target.value })
-                      }
-                    />
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-sm font-semibold text-gray-700">Password Baru</label>
+                      <input
+                        type="password"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all"
+                        placeholder="Kosongkan jika tidak ingin mengubah password"
+                        value={editData.password || ""}
+                        onChange={(e) => setEditData({ ...editData, password: e.target.value })}
+                      />
+                    </div>
                   </div>
 
                   {saveError && (
-                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-lg mt-2">
-                      <AlertCircle size={15} />
-                      {saveError}
+                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-3 rounded-lg">
+                      <AlertCircle size={16} /> <p className="font-medium">{saveError}</p>
                     </div>
                   )}
-                </div>
-              )}
-            </div>
 
-            <div className="flex flex-col gap-2 mt-4 md:mt-0">
-              {!isEditing ? (
-                <button
-                  onClick={() => {
-                    setIsEditing(true);
-                    setSaveError("");
-                  }}
-                  className="flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow w-full md:w-auto"
-                >
-                  <Edit2 size={16} /> Edit Profil
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow w-full md:w-auto disabled:opacity-60"
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" /> Menyimpan...
-                      </>
-                    ) : (
-                      <>
-                        <Save size={16} /> Simpan
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setSaveError("");
-                      setEditData({
-                        nama_lengkap: profileData.nama_lengkap || "",
-                        username: profileData.username || "",
-                        email: profileData.email || "",
-                        password: "",
-                        foto_profil: profileData.foto_profil || "",
-                      });
-                      setPreviewImage("");
-                    }}
-                    className="flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2.5 rounded-lg font-semibold transition w-full md:w-auto"
-                  >
-                    <X size={16} /> Batal
-                  </button>
-                </>
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setSaveError("");
+                        setEditData({
+                          nama_lengkap: profileData.nama_lengkap || "",
+                          username: profileData.username || "",
+                          email: profileData.email || "",
+                          password: "",
+                          foto_profil: profileData.foto_profil || "",
+                        });
+                        setPreviewImage("");
+                      }}
+                      className="px-5 py-3 rounded-lg font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-all"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isSaving ? (
+                        <><Loader2 size={18} className="animate-spin" /> Proses...</>
+                      ) : (
+                        <><Save size={18} /> Simpan Perubahan</>
+                      )}
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100 max-w-4xl">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800 border-l-4 border-yellow-500 pl-3">
-            Riwayat Peminjaman
-          </h2>
-
-          {borrowHistory.length === 0 ? (
-            <div className="text-center py-12">
-              <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Belum ada riwayat peminjaman.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="py-3 px-4 font-semibold text-gray-600">Kode</th>
-                    <th className="py-3 px-4 font-semibold text-gray-600">Judul Buku</th>
-                    <th className="py-3 px-4 font-semibold text-gray-600">Tgl Pinjam</th>
-                    <th className="py-3 px-4 font-semibold text-gray-600">Jatuh Tempo</th>
-                    <th className="py-3 px-4 font-semibold text-gray-600">Tgl Kembali</th>
-                    <th className="py-3 px-4 font-semibold text-gray-600">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {borrowHistory.map((item, i) => (
-                    <tr key={item.kode_peminjaman || i} className={`border-t border-gray-100 hover:bg-gray-50 transition ${i % 2 === 0 ? "" : "bg-gray-50/50"}`}>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-500">{item.kode_peminjaman || "-"}</td>
-                      <td className="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{item.judul_buku || "-"}</td>
-                      <td className="px-4 py-3 text-gray-600">{item.tanggal_pinjam || "-"}</td>
-                      <td className="px-4 py-3 text-gray-600">{item.tanggal_jatuh_tempo || "-"}</td>
-                      <td className="px-4 py-3 text-gray-600">{item.tanggal_kembali || "-"}</td>
-                      <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
       </main>
     </div>
   );
 }
+
