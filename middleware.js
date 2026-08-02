@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 
 const ADMIN_ROUTES = [
-  "/Dashboard-Admin",
+  "/dashboard",
   "/kelola-buku",
   "/kelola-peminjaman",
   "/pengembalian",
 ];
 
 const PROTECTED_ROUTES = [
-  "/Homepage",
+  "/home",
   "/koleksi-buku",
   "/peminjaman",
   "/wishlist",
@@ -37,7 +37,7 @@ export function middleware(request) {
 
   if (isAdminRoute) {
     if (!isLoggedIn) {
-      return NextResponse.redirect(new URL("/login-page", request.url));
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
     if (!isAdmin) {
@@ -50,15 +50,15 @@ export function middleware(request) {
   );
 
   if (isProtectedRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/login-page", request.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (
     isLoggedIn &&
-    (pathname === "/login-page" || pathname === "/register-page")
+    (pathname === "/login" || pathname === "/register")
   ) {
     return NextResponse.redirect(
-      new URL(isAdmin ? "/Dashboard-Admin" : "/Homepage", request.url)
+      new URL(isAdmin ? "/dashboard" : "/home", request.url)
     );
   }
 
@@ -67,17 +67,17 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
-    "/Dashboard-Admin/:path*",
+    "/dashboard/:path*",
     "/kelola-buku/:path*",
     "/kelola-peminjaman/:path*",
     "/pengembalian/:path*",
-    "/Homepage/:path*",
+    "/home/:path*",
     "/koleksi-buku/:path*",
     "/peminjaman/:path*",
     "/wishlist/:path*",
     "/riwayat/:path*",
     "/profile/:path*",
-    "/login-page",
-    "/register-page",
+    "/login",
+    "/register",
   ],
 };

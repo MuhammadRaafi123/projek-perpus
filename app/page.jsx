@@ -128,8 +128,8 @@ export default function LandingPage() {
     <a href="#koleksi" className="hover:text-yellow-400 transition">Koleksi Buku</a>
   </div>
         <div className="space-x-3 ml-6">
-          <a href="/login-page" className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg font-semibold text-sm transition">Masuk</a>
-          <a href="/register-page" className="bg-white text-gray-800 hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold text-sm transition">Daftar</a>
+          <a href="/login" className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg font-semibold text-sm transition">Masuk</a>
+          <a href="/register" className="bg-white text-gray-800 hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold text-sm transition">Daftar</a>
         </div>
       </nav>
 
@@ -141,7 +141,7 @@ export default function LandingPage() {
           Jelajahi dunia pengetahuan. Pinjam buku, baca online, dan kelola akun perpustakaan Anda dengan mudah.
         </p>
         <div className="flex gap-4">
-          <a href="/login-page" className="bg-yellow-600 hover:bg-yellow-700 px-6 py-3 rounded-lg font-semibold text-white transition">Mulai Sekarang</a>
+          <a href="/login" className="bg-yellow-600 hover:bg-yellow-700 px-6 py-3 rounded-lg font-semibold text-white transition">Mulai Sekarang</a>
           <a href="#about" className="bg-gray-600/80 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition border border-gray-500">Pelajari Lebih Lanjut</a>
         </div>
       </section>
@@ -300,7 +300,7 @@ export default function LandingPage() {
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">{book.deskripsi}</p>
 
                   <a
-                    href="/login-page"
+                    href="/login"
                     className={`w-full block text-center py-2 rounded-lg font-semibold transition mt-auto ${
                       book.stok_tersedia > 0
                         ? "bg-yellow-600 hover:bg-yellow-700 text-white"

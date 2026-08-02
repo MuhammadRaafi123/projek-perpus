@@ -34,19 +34,18 @@ export async function POST(req) {
 
     const buku = rows[0];
 
-    if (buku.stok <= 0) {
+    // Ganti 'stok' menjadi 'stok_tersedia' sesuai skema database Anda
+    if (buku.stok_tersedia <= 0) {
       return NextResponse.json(
         { success: false, message: "Stok buku habis!" },
         { status: 400 }
       );
     }
 
-    await db.query(
-      "UPDATE buku SET stok = stok - 1 WHERE id = ?",
-      [bookId]
-    );
-
     const kodePeminjaman = `PJM${Date.now()}-${user.id}`;
+
+    // Format tanggal ke YYYY-MM-DD agar kompatibel dengan tipe data DATE di MySQL
+    const formatDate = (date) => date.toISOString().split("T")[0];
 
     const tanggalPinjam = new Date();
     const tanggalJatuhTempo = new Date();
@@ -54,6 +53,9 @@ export async function POST(req) {
     else if (durasi === "1 Bulan") tanggalJatuhTempo.setMonth(tanggalJatuhTempo.getMonth() + 1);
     else tanggalJatuhTempo.setDate(tanggalJatuhTempo.getDate() + 7);
 
+    // Jika ingin trigger database otomatis memotong stok, status harus 'dipinjam'. 
+    // Tapi karena alurnya 'menunggu' persetujuan admin, biarkan status 'menunggu' 
+    // dan kurangi stok nanti saat admin menyetujuinya.
     const [result] = await db.query(
       `INSERT INTO peminjaman 
         (kode_peminjaman, user_id, buku_id, tanggal_pinjam, tanggal_jatuh_tempo, status)
@@ -62,8 +64,8 @@ export async function POST(req) {
         kodePeminjaman,
         user.id,
         bookId,
-        tanggalPinjam,
-        tanggalJatuhTempo,
+        formatDate(tanggalPinjam),
+        formatDate(tanggalJatuhTempo),
       ]
     );
 
@@ -74,7 +76,7 @@ export async function POST(req) {
         peminjaman_id: result.insertId,
         kode_peminjaman: kodePeminjaman,
         buku: buku.judul,
-        tanggal_jatuh_tempo: tanggalJatuhTempo,
+        tanggal_jatuh_tempo: formatDate(tanggalJatuhTempo),
       },
     });
   } catch (err) {
